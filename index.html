@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizzaria • Painel de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#14110d; --panel:#1c1811; --card:#242019; --card-hover:#2c2620; --line:#3a3327;
+    --cream:#f5efe3; --muted:#a89c85; --muted-dim:#6f6553;
+    --tomato:#c1440e; --tomato-light:#e8613a; --olive:#7c8a3f; --olive-dark:#5b6b2b;
+    --danger:#d1453b; --ok:#7c9a4a; --warn:#d9a441; --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(193,68,14,.16), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(124,138,63,.10), transparent 55%),
+      var(--void);
+    color:var(--cream); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Bebas Neue',sans-serif; letter-spacing:.03em;}
+  .tnum{font-variant-numeric:tabular-nums;}
+  .shell{max-width:1180px;margin:0 auto;padding:22px 20px 60px;}
+  .hidden{display:none !important;}
+
+  /* login */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:32px 28px;box-shadow:var(--shadow);text-align:center;}
+  .login-card .mark{width:56px;height:56px;border-radius:14px;margin:0 auto 14px;background:conic-gradient(from 200deg, var(--tomato), var(--olive-dark), var(--tomato));display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .login-card h1{font-family:'Bebas Neue';font-size:26px;margin:0 0 4px;letter-spacing:.03em;}
+  .login-card p{font-size:12px;color:var(--muted);margin:0 0 22px;}
+  .login-err{color:var(--danger);font-size:12.5px;margin-top:8px;min-height:16px;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{width:42px;height:42px;border-radius:11px;background:conic-gradient(from 200deg, var(--tomato), var(--olive-dark), var(--tomato));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:var(--shadow);}
+  .brand h1{font-family:'Bebas Neue';font-size:26px;letter-spacing:.04em;margin:0;line-height:1;}
+  .brand p{margin:2px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.02em;}
+  .userbox{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);}
+  .userbox b{color:var(--cream);}
+  .logout-btn{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:11.5px;cursor:pointer;}
+  .logout-btn:hover{color:var(--cream);border-color:var(--tomato);}
+
+  .tabs{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px;border:1px solid var(--line);flex-wrap:wrap;}
+  .tab{border:none;background:transparent;color:var(--muted);font-family:'Inter';font-weight:600;font-size:13px;padding:9px 16px;border-radius:8px;cursor:pointer;transition:.15s;white-space:nowrap;}
+  .tab.active{background:var(--tomato);color:#fff;box-shadow:0 4px 14px rgba(193,68,14,.4);}
+  .tab:not(.active):hover{color:var(--cream);background:var(--card);}
+
+  .view{display:none;animation:fade .25s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .grid{display:grid;gap:16px;}
+  .g-2{grid-template-columns:1.1fr .9fr;}
+  @media(max-width:880px){.g-2{grid-template-columns:1fr;}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;}
+  .card h2{font-family:'Bebas Neue';font-size:19px;letter-spacing:.03em;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--tomato);display:inline-block;}
+  label{display:block;font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
+  input[type=text],input[type=number],input[type=date],input[type=time],input[type=password],select,textarea{
+    width:100%;background:var(--panel);border:1px solid var(--line);color:var(--cream);border-radius:9px;padding:9px 11px;font-family:'Inter';font-size:13.5px;outline:none;transition:.12s;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--tomato-light);box-shadow:0 0 0 3px rgba(193,68,14,.18);}
+  .field{margin-bottom:12px;}
+  .row{display:grid;gap:10px;}
+  .row-2{grid-template-columns:1fr 1fr;}
+
+  button{font-family:'Inter';cursor:pointer;}
+  .btn{border:none;border-radius:9px;padding:10px 16px;font-weight:700;font-size:13px;background:var(--panel);color:var(--cream);border:1px solid var(--line);transition:.12s;}
+  .btn:hover{background:var(--card-hover);}
+  .btn-primary{background:var(--tomato);color:#fff;border-color:transparent;}
+  .btn-primary:hover{background:var(--tomato-light);}
+  .btn-olive{background:var(--olive-dark);color:#fff;border-color:transparent;}
+  .btn-olive:hover{background:var(--olive);}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(209,69,59,.4);}
+  .btn-danger:hover{background:rgba(209,69,59,.12);}
+  .btn-ghost{background:transparent;border-color:var(--line);}
+  .btn-sm{padding:6px 10px;font-size:11.5px;border-radius:7px;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;transition:.12s;}
+  .chip.on{background:var(--tomato);color:#fff;border-color:transparent;}
+
+  .item-line{display:grid;grid-template-columns:1.5fr .6fr .8fr .8fr 30px;gap:8px;align-items:center;margin-bottom:8px;}
+  .pagamento-line{display:grid;grid-template-columns:1fr .8fr .8fr .7fr 30px;gap:8px;align-items:center;margin-bottom:8px;}
+  .pagamento-line .troco-mini{font-size:11.5px;color:var(--muted);align-self:center;}
+  .rm{background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;}
+
+  .totalbar{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:10px;border-top:1px dashed var(--line);}
+  .totalbar .big{font-family:'Bebas Neue';font-size:30px;color:var(--tomato-light);}
+
+  .toggle{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;}
+  .toggle .sw{width:38px;height:21px;border-radius:20px;background:var(--panel);border:1px solid var(--line);position:relative;transition:.15s;}
+  .toggle .sw::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--muted);transition:.15s;}
+  .toggle.on .sw{background:var(--tomato);}
+  .toggle.on .sw::after{left:19px;background:#fff;}
+  .toggle span.lbl{font-size:12.5px;color:var(--muted);font-weight:600;}
+
+  .searchbar{display:flex;gap:8px;margin-bottom:12px;}
+  .searchbar input{flex:1;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;color:var(--muted-dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--line);}
+  td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+  tr.cancelado td{opacity:.45;text-decoration:line-through;}
+  .badge{padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;display:inline-block;}
+  .badge.ativo{background:rgba(124,154,74,.18);color:var(--ok);}
+  .badge.editado{background:rgba(217,164,65,.18);color:var(--warn);}
+  .badge.cancelado{background:rgba(209,69,59,.18);color:var(--danger);}
+  .badge.canal{background:rgba(255,255,255,.06);color:var(--muted);}
+  .actions-cell{display:flex;gap:6px;}
+  .empty{padding:30px 10px;text-align:center;color:var(--muted-dim);font-size:12.5px;}
+
+  .metric{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;}
+  .metric::before{content:'';position:absolute;inset:0 auto auto 0;width:3px;height:100%;background:var(--tomato);}
+  .metric .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:8px;}
+  .metric .val{font-family:'Bebas Neue';font-size:26px;color:var(--cream);}
+  .metric .val.pos{color:var(--ok);} .metric .val.neg{color:var(--danger);}
+  .metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+  @media(max-width:1020px){.metrics-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:600px){.metrics-grid{grid-template-columns:repeat(2,1fr);}}
+
+  .rank-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+  .rank-row .n{font-family:'Bebas Neue';color:var(--tomato-light);font-size:16px;width:20px;}
+  .rank-row .bar{flex:1;height:6px;background:var(--panel);border-radius:4px;overflow:hidden;}
+  .rank-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--tomato),var(--tomato-light));}
+  .rank-row .qty{font-size:12px;color:var(--muted);width:70px;text-align:right;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(10,8,5,.65);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;width:100%;max-width:440px;box-shadow:var(--shadow);}
+  .modal h3{font-family:'Bebas Neue';font-size:20px;margin:0 0 14px;}
+
+  .receipt-ticket{background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .receipt-ticket .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .receipt-ticket .comanda{font-family:'Bebas Neue';font-size:18px;color:var(--tomato-light);}
+  .receipt-ticket .meta{font-size:11px;color:var(--muted-dim);}
+  .receipt-ticket .val{font-family:'Bebas Neue';font-size:20px;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--olive-dark);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:99;opacity:0;pointer-events:none;transition:.25s;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .toast.err{background:var(--danger);}
+  .section-sub{font-size:11.5px;color:var(--muted-dim);margin:-8px 0 14px;}
+  .print-report{display:none;}
+  .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:5px;}
+  .conn-dot.off{background:var(--danger);}
+
+  @media print{
+    body *{visibility:hidden;}
+    .print-report,.print-report *{visibility:visible;}
+    .print-report{display:block;position:absolute;top:0;left:0;width:100%;color:#000;background:#fff;padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <div class="mark">🍕</div>
+    <h1>PIZZARIA · PAINEL</h1>
+    <p>Entre com seu usuário para continuar</p>
+    <div class="field" style="text-align:left;">
+      <label>Usuário</label>
+      <input type="text" id="login-nome" placeholder="Caixa ou Gerente" autocomplete="username">
+    </div>
+    <div class="field" style="text-align:left;">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary btn-block" id="login-btn" style="padding:12px;">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <p style="font-size:11px;color:var(--muted-dim);margin-top:18px;">Usuários iniciais: <b>Caixa</b> / <b>Gerente</b> · senha <b>pizzaria123</b></p>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="shell hidden" id="app-shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">🍕</div>
+      <div><h1>PIZZARIA · PAINEL</h1><p><span class="conn-dot" id="conn-dot"></span>PDV de balcão + gestão financeira</p></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-view="pdv">PDV</button>
+        <button class="tab" data-view="vendas">Vendas Recentes</button>
+        <button class="tab" data-view="caixa">Caixa</button>
+        <button class="tab" data-view="caixasimples">Registro Rápido</button>
+        <button class="tab" data-view="estoque">Estoque</button>
+        <button class="tab" data-view="categorias">Categorias</button>
+        <button class="tab" data-view="ficha">Ficha Técnica</button>
+        <button class="tab" data-view="financeiro">Financeiro</button>
+        <button class="tab" data-view="equipe">Equipe</button>
+        <button class="tab" data-view="relatorios">Relatórios</button>
+        <button class="tab" data-view="dash">Dashboard</button>
+      </div>
+      <div class="userbox">
+        <span>Olá, <b id="userbox-nome"></b></span>
+        <button class="logout-btn" id="logout-btn">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PDV ===================== -->
+  <div class="view active" id="view-pdv">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Novo Pedido</h2>
+        <div id="pdv-retro-banner" style="display:none;background:rgba(217,164,65,.15);border:1px solid var(--warn);border-radius:9px;padding:9px 12px;margin-bottom:14px;font-size:12.5px;color:var(--warn);font-weight:700;"></div>
+        <div class="row row-2">
+          <div class="field"><label>Nº da Comanda</label><input type="text" id="pdv-comanda" placeholder="ex: 12"></div>
+          <div class="field"><label>Cliente</label><input type="text" id="pdv-cliente" placeholder="Opcional"></div>
+        </div>
+        <div class="field">
+          <label>Canal de Venda</label>
+          <div class="chip-row" id="pdv-canal">
+            <div class="chip on" data-v="Balcão/Retirada">Balcão / Retirada</div>
+            <div class="chip" data-v="Delivery Próprio">Delivery Próprio</div>
+            <div class="chip" data-v="Mesa">Mesa</div>
+            <div class="chip" data-v="Anota AI/WhatsApp">Anota AI / WhatsApp</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Itens do Pedido</label>
+          <div id="pdv-items"></div>
+          <button class="btn btn-ghost btn-sm" id="pdv-add-item" type="button">+ Adicionar item</button>
+        </div>
+        <div class="row row-2" id="pdv-frete-wrap" style="display:none;">
+          <div class="field"><label>Taxa de Entrega (R$)</label><input type="number" id="pdv-frete" value="0" step="0.5" min="0"></div>
+          <div></div>
+        </div>
+        <div class="field">
+          <label>Forma de Pagamento</label>
+          <div id="pdv-pagamentos"></div>
+          <button class="btn btn-ghost btn-sm" id="pdv-add-pagamento" type="button">+ Dividir em outra forma de pagamento</button>
+          <div class="section-sub" id="pdv-pagamentos-resumo" style="margin-top:6px;"></div>
+        </div>
+        <div class="field">
+          <div class="toggle" id="pdv-retro-toggle"><div class="sw"></div><span class="lbl">Lançar com Data Retroativa</span></div>
+        </div>
+        <div class="row row-2" id="pdv-retro-fields" style="display:none;">
+          <div class="field"><label>Data do Pedido</label><input type="date" id="pdv-retro-data"></div>
+          <div class="field"><label>Hora</label><input type="time" id="pdv-retro-hora"></div>
+        </div>
+        <div class="totalbar"><span style="color:var(--muted);font-size:12px;">Total do pedido</span><span class="big tnum" id="pdv-total">R$ 0,00</span></div>
+        <button class="btn btn-primary btn-block" style="margin-top:14px;padding:13px;" id="pdv-finalizar">Finalizar Venda</button>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Últimas Comandas</h2>
+        <div id="pdv-recent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VENDAS ===================== -->
+  <div class="view" id="view-vendas">
+    <div class="card">
+      <h2><span class="dot"></span>Vendas Recentes</h2>
+      <div class="searchbar">
+        <input type="text" id="vendas-search" placeholder="Buscar por Nº comanda ou cliente..." style="flex:2;">
+        <input type="date" id="vendas-data" style="max-width:180px;">
+        <button class="btn btn-ghost btn-sm" id="vendas-data-limpar">Limpar data</button>
+        <button class="btn btn-olive btn-sm" id="vendas-exportar">⬇ Exportar CSV</button>
+      </div>
+      <div id="vendas-resumo-dia" class="section-sub"></div>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Comanda</th><th>Cliente</th><th>Canal</th><th>Data/Hora</th><th>Pizzas</th><th>Total</th><th>Pagto</th><th>Status</th><th></th></tr></thead>
+        <tbody id="vendas-tbody"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CAIXA ===================== -->
+  <div class="view" id="view-caixa">
+    <div class="grid g-2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2 style="margin:0;"><span class="dot"></span>Abertura de Caixa</h2>
+          <button class="btn btn-ghost btn-sm" id="caixa-editar" hidden>Editar</button>
+        </div>
+        <div id="caixa-abertura-form">
+          <div class="field"><label>Operador</label><input type="text" id="caixa-operador" placeholder="Nome de quem abriu o turno"></div>
+          <div class="field"><label>Fundo de Troco (R$)</label><input type="number" id="caixa-fundo" step="1" min="0" placeholder="0,00"></div>
+          <div class="field">
+            <div class="toggle" id="caixa-retro-toggle"><div class="sw"></div><span class="lbl">Lançar com Data Retroativa</span></div>
+          </div>
+          <div class="field" id="caixa-retro-data-wrap" style="display:none;">
+            <label>Data do Caixa</label>
+            <input type="date" id="caixa-retro-data">
+            <p class="section-sub" style="margin-top:6px;">Abertura e fechamento ficam registrados nesse dia, mesmo que você esteja lançando agora.</p>
+          </div>
+          <button class="btn btn-primary btn-block" id="caixa-abrir">Abrir Caixa</button>
+        </div>
+        <div id="caixa-quickactions" hidden style="margin-top:10px;">
+          <label style="margin-bottom:9px;">Ações Rápidas</label>
+          <div class="row row-2">
+            <button class="btn btn-danger" id="btn-sangria">− Sangria</button>
+            <button class="btn btn-olive" id="btn-suprimento">+ Suprimento</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Conferência &amp; Fechamento</h2>
+        <div id="caixa-resumo"></div>
+        <div class="field" style="margin-top:12px;">
+          <label>Valor Contado na Gaveta (R$)</label>
+          <input type="number" id="caixa-contado" step="1" min="0" placeholder="Conte o dinheiro e digite aqui">
+        </div>
+        <div class="totalbar" id="caixa-diferenca-wrap" style="display:none;">
+          <span style="color:var(--muted);font-size:12px;" id="caixa-diferenca-label">Diferença</span>
+          <span class="big tnum" id="caixa-diferenca">R$ 0,00</span>
+        </div>
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" id="caixa-fechar">Fechar Caixa e Gerar Relatório PDF</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot"></span>Movimentações do Turno</h2>
+      <table><thead><tr><th>Hora</th><th>Tipo</th><th>Motivo</th><th>Valor</th><th></th></tr></thead><tbody id="mov-tbody"></tbody></table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot" style="background:var(--olive)"></span>Histórico de Fechamentos</h2>
+      <div class="searchbar">
+        <input type="date" id="hist-caixa-data" style="max-width:220px;">
+        <button class="btn btn-ghost btn-sm" id="hist-caixa-limpar">Ver últimos 60</button>
+      </div>
+      <div id="hist-caixa-lista"></div>
+    </div>
+  </div>
+
+  <!-- ===================== REGISTRO RÁPIDO (caixa simples, independente do sistema de vendas) ===================== -->
+  <div class="view" id="view-caixasimples">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Novo Registro</h2>
+        <p class="section-sub">Só um cadastro manual de acompanhamento — não puxa vendas do sistema nem mexe no caixa oficial.</p>
+        <div class="field"><label>Data</label><input type="date" id="cs-data"></div>
+        <div class="field"><label>Abertura (R$)</label><input type="number" id="cs-abertura" min="0" step="1" placeholder="0,00"></div>
+        <div class="field"><label>+ Vendas em Dinheiro (R$)</label><input type="number" id="cs-vendas" min="0" step="1" placeholder="0,00"></div>
+
+        <div class="field">
+          <label>− Pagamentos (saídas com motivo)</label>
+          <div id="cs-pagamentos"></div>
+          <button class="btn btn-ghost btn-sm" id="cs-add-pagamento" type="button">+ Adicionar pagamento</button>
+        </div>
+
+        <div class="field"><label>Fechamento (R$)</label><input type="number" id="cs-fechamento" min="0" step="1" placeholder="0,00"></div>
+        <div class="field"><label>Observação (opcional)</label><input type="text" id="cs-obs" placeholder="qualquer anotação sobre esse dia"></div>
+
+        <div class="totalbar">
+          <span style="color:var(--muted);font-size:12px;">Esperado (Abertura + Vendas − Pagamentos)</span>
+          <span class="big tnum" id="cs-esperado">R$ 0,00</span>
+        </div>
+        <div class="section-sub" id="cs-diferenca" style="margin-top:4px;"></div>
+
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" id="cs-salvar">Salvar Registro</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Registros Salvos</h2>
+        <div class="searchbar">
+          <input type="date" id="cs-filtro-data" style="max-width:220px;">
+          <button class="btn btn-ghost btn-sm" id="cs-filtro-limpar">Ver todos</button>
+        </div>
+        <div id="cs-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ESTOQUE ===================== -->
+  <div class="view" id="view-estoque">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Cadastrar Insumo</h2>
+        <p class="section-sub">Muçarela, calabresa, refrigerantes, caixas de pizza — qualquer item que você controla em estoque.</p>
+        <div class="field"><label>Nome do Insumo</label><input type="text" id="est-insumo" placeholder="ex: Muçarela, Refrigerante Lata..."></div>
+        <div class="row row-2">
+          <div class="field"><label>Unidade</label>
+            <select id="est-unidade">
+              <option value="g">g (gramas)</option><option value="kg">kg</option>
+              <option value="ml">ml</option><option value="L">L</option>
+              <option value="un">un (unidade)</option><option value="fardo">fardo</option>
+            </select>
+          </div>
+          <div class="field"><label>Estoque Mínimo (alerta)</label><input type="number" id="est-minimo" min="0" step="1" value="0"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="est-salvar">Salvar Insumo</button>
+
+        <h2 style="margin-top:26px;"><span class="dot" style="background:var(--olive)"></span>Lançar Compra</h2>
+        <p class="section-sub">Uma nota de mercado pode ter vários itens — lance um de cada vez, o estoque atualiza sozinho.</p>
+        <div class="row row-2">
+          <div class="field"><label>Data</label><input type="date" id="cmp-data"></div>
+          <div class="field"><label>Fornecedor</label><input type="text" id="cmp-fornecedor"></div>
+        </div>
+        <div class="field"><label>Insumo</label><input type="text" id="cmp-insumo" list="estoque-list" placeholder="Nome do insumo já cadastrado"></div>
+        <div class="row row-3">
+          <div class="field"><label>Quantidade</label><input type="number" id="cmp-qtd" min="0" step="0.01"></div>
+          <div class="field"><label>Unidade</label><input type="text" id="cmp-unidade" placeholder="g, kg, un..."></div>
+          <div class="field"><label>Valor Unit. (R$)</label><input type="number" id="cmp-valor" min="0" step="0.01"></div>
+        </div>
+        <div class="row row-2">
+          <div class="field"><label>Forma de Pagamento</label>
+            <select id="cmp-pagto"><option>Pix</option><option>Dinheiro do Caixa</option><option>Cartão</option><option>Boleto</option></select>
+          </div>
+          <div class="field"><label>Nota (nº/referência)</label><input type="text" id="cmp-nota"></div>
+        </div>
+        <button class="btn btn-olive btn-block" id="cmp-salvar">Registrar Compra</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="dot"></span>Estoque Atual</h2>
+        <div id="est-lista"></div>
+        <h2 style="margin-top:22px;"><span class="dot" style="background:var(--olive)"></span>Últimas Compras</h2>
+        <div id="cmp-lista"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot"></span>Preços de Produtos</h2>
+      <p class="section-sub">Cadastre o preço de cada item por categoria (ex: Calabresa como Pizza Inteira e como Pizza Meia podem ter preços diferentes). No PDV, o valor preenche sozinho quando você escolhe um item já cadastrado aqui — mas continua editável.</p>
+      <div class="row row-3">
+        <div class="field"><label>Nome do Produto</label><input type="text" id="prod-nome" list="sabores-list" placeholder="ex: Calabresa, Refrigerante Lata..."></div>
+        <div class="field"><label>Categoria</label>
+          <select id="prod-categoria"></select>
+        </div>
+        <div class="field"><label>Preço (R$)</label><input type="number" id="prod-preco" min="0" step="0.5" placeholder="0,00"></div>
+      </div>
+      <button class="btn btn-primary" id="prod-salvar">Salvar Preço</button>
+
+      <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--line);">
+        <label style="margin-bottom:9px;">Cadastro em Massa</label>
+        <p class="section-sub" style="margin-top:-4px;">Cole a lista toda de uma vez, um item por linha. Preço é opcional — pode incluir separado por ";" ou deixar pra depois.</p>
+        <div class="field"><label>Categoria (aplica a todos os itens colados)</label><select id="prod-massa-categoria"></select></div>
+        <div class="field">
+          <textarea id="prod-massa-texto" rows="8" placeholder="Calabresa;55&#10;Mussarela;50&#10;Portuguesa&#10;Frango com Catupiry;58"></textarea>
+        </div>
+        <button class="btn btn-olive" id="prod-massa-salvar">Cadastrar Todos</button>
+        <div class="section-sub" id="prod-massa-resultado" style="margin-top:8px;"></div>
+      </div>
+
+      <div id="prod-lista" style="margin-top:22px;padding-top:16px;border-top:1px solid var(--line);"></div>
+    </div>
+  </div>
+
+  <!-- ===================== CATEGORIAS ===================== -->
+  <div class="view" id="view-categorias">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Nova Categoria</h2>
+        <p class="section-sub">Categorias organizam os itens do PDV (ex: Pizza Inteira, Bebida). Crie uma nova para tipos que ainda não existem, como "Sobremesa" ou "Pizza Quarto".</p>
+        <div class="field"><label>Nome da Categoria</label><input type="text" id="cat-nome" placeholder="ex: Sobremesa, Pizza Quarto..."></div>
+        <div class="field">
+          <label>Tipo</label>
+          <div class="chip-row" id="cat-tipo">
+            <div class="chip on" data-v="pizza">Tipo Pizza (conta no ranking de sabores)</div>
+            <div class="chip" data-v="consumo">Tipo Consumo (bebida, adicional, sobremesa...)</div>
+          </div>
+        </div>
+        <div class="field" id="cat-fracao-wrap">
+          <label>Fração de uma pizza inteira</label>
+          <input type="number" id="cat-fracao" min="0.01" max="1" step="0.01" value="1" placeholder="ex: 1 para inteira, 0.5 para meia, 0.33 para terço">
+          <p class="section-sub" style="margin-top:6px;">Referência: Inteira = 1 · Meia = 0,5 · Terço = 0,33 · Quarto = 0,25</p>
+        </div>
+        <button class="btn btn-primary btn-block" id="cat-salvar">Salvar Categoria</button>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Categorias Cadastradas</h2>
+        <div id="cat-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FICHA TÉCNICA ===================== -->
+  <div class="view" id="view-ficha">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Nova Ficha Técnica</h2>
+        <p class="section-sub">Defina quanto de cada insumo 1 unidade do produto consome. Isso baixa o estoque automaticamente a cada venda.</p>
+        <div class="field"><label>Produto (nome exatamente como usado no PDV)</label><input type="text" id="fic-produto" placeholder="ex: Calabresa"></div>
+        <div id="fic-itens"></div>
+        <button class="btn btn-ghost btn-sm" id="fic-add-item" type="button">+ Adicionar insumo</button>
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" id="fic-salvar">Salvar Ficha Técnica</button>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Fichas Cadastradas</h2>
+        <div id="fic-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FINANCEIRO ===================== -->
+  <div class="view" id="view-financeiro">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Nova Conta</h2>
+        <div class="field">
+          <label>Tipo</label>
+          <div class="chip-row" id="fin-tipo">
+            <div class="chip on" data-v="pagar">A Pagar</div>
+            <div class="chip" data-v="receber">A Receber</div>
+          </div>
+        </div>
+        <div class="field"><label>Descrição</label><input type="text" id="fin-descricao" placeholder="ex: Aluguel, Energia, Evento corporativo..."></div>
+        <div class="row row-2">
+          <div class="field"><label>Categoria</label><input type="text" id="fin-categoria" placeholder="Fixa, Variável..."></div>
+          <div class="field"><label>Vencimento</label><input type="date" id="fin-vencimento"></div>
+        </div>
+        <div class="field"><label>Valor (R$)</label><input type="number" id="fin-valor" min="0" step="0.01"></div>
+        <button class="btn btn-primary btn-block" id="fin-salvar">Salvar Conta</button>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Contas em Aberto</h2>
+        <div class="chip-row" id="fin-filtro" style="margin-bottom:12px;">
+          <div class="chip on" data-v="todas">Todas</div>
+          <div class="chip" data-v="pagar">A Pagar</div>
+          <div class="chip" data-v="receber">A Receber</div>
+        </div>
+        <div id="fin-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== EQUIPE ===================== -->
+  <div class="view" id="view-equipe">
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Cadastrar Pessoa</h2>
+        <div class="field">
+          <label>Tipo</label>
+          <div class="chip-row" id="eq-tipo">
+            <div class="chip on" data-v="Freelancer">Freelancer</div>
+            <div class="chip" data-v="Fixo">Funcionário Fixo</div>
+          </div>
+        </div>
+        <div class="field"><label>Nome</label><input type="text" id="eq-nome" placeholder="Nome completo"></div>
+        <div class="row row-2">
+          <div class="field"><label>Função</label>
+            <select id="eq-funcao">
+              <option>Motoboy</option><option>Pizzaiolo</option><option>Ajudante</option>
+              <option>Garçom</option><option>Caixa</option><option>Gerente</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="field"><label>Valor Padrão (R$)</label><input type="number" id="eq-valor" min="0" step="0.01" placeholder="diária ou salário"></div>
+        </div>
+        <div class="field"><label>Chave PIX</label><input type="text" id="eq-pix" placeholder="opcional"></div>
+        <button class="btn btn-primary btn-block" id="eq-salvar">Salvar Pessoa</button>
+
+        <h2 style="margin-top:26px;"><span class="dot" style="background:var(--olive)"></span>Lançar Pagamento</h2>
+        <div class="field"><label>Pessoa</label>
+          <select id="pg-pessoa"><option value="">Selecione...</option></select>
+        </div>
+        <div class="row row-2">
+          <div class="field"><label>Data</label><input type="date" id="pg-data"></div>
+          <div class="field"><label>Descrição</label><input type="text" id="pg-descricao" placeholder="ex: diária, entrega, salário mensal"></div>
+        </div>
+        <div class="row row-2">
+          <div class="field"><label>Valor (R$)</label><input type="number" id="pg-valor" min="0" step="0.01"></div>
+          <div class="field"><label>Taxas Extras (R$)</label><input type="number" id="pg-taxas" min="0" step="0.01" value="0"></div>
+        </div>
+        <div class="field"><label>Forma de Pagamento</label>
+          <select id="pg-forma"><option>Dinheiro do Caixa</option><option>Pix</option><option>Outro</option></select>
+        </div>
+        <p class="section-sub">Se for "Dinheiro do Caixa", o valor é lançado automaticamente como Sangria no caixa aberto.</p>
+        <button class="btn btn-olive btn-block" id="pg-salvar">Registrar Pagamento</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="dot"></span>Equipe Cadastrada</h2>
+        <div id="eq-lista"></div>
+        <h2 style="margin-top:22px;"><span class="dot" style="background:var(--olive)"></span>Repasses Recentes</h2>
+        <div id="pg-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== RELATÓRIOS ===================== -->
+  <div class="view" id="view-relatorios">
+    <div class="card">
+      <h2><span class="dot"></span>Relatório Gerencial</h2>
+      <p class="section-sub">Faturamento, despesas, lucro, ranking e repasses de equipe num único PDF para apresentar ao gerente.</p>
+      <div class="row row-3">
+        <div class="field"><label>De</label><input type="date" id="rel-inicio"></div>
+        <div class="field"><label>Até</label><input type="date" id="rel-fim"></div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button class="btn btn-primary btn-block" id="rel-gerar">Gerar e Imprimir PDF</button>
+        </div>
+      </div>
+      <div class="chip-row" style="margin-top:4px;">
+        <div class="chip" data-rel-atalho="hoje">Hoje</div>
+        <div class="chip" data-rel-atalho="ontem">Ontem</div>
+        <div class="chip" data-rel-atalho="semana">Esta Semana</div>
+        <div class="chip" data-rel-atalho="mes">Este Mês</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot" style="background:var(--olive)"></span>Fechamentos de Caixa Anteriores</h2>
+      <p class="section-sub">Escolha um dia para ver e reimprimir o relatório daquele fechamento específico.</p>
+      <div class="searchbar">
+        <input type="date" id="rel-hist-data" style="max-width:220px;">
+        <button class="btn btn-ghost btn-sm" id="rel-hist-limpar">Ver últimos 60</button>
+      </div>
+      <div id="rel-hist-lista"></div>
+    </div>
+  </div>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div class="view" id="view-dash">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <h2 style="margin:0;"><span class="dot"></span>Filtro de Período</h2>
+        <div class="chip-row" id="dash-period">
+          <div class="chip on" data-v="hoje">Hoje</div>
+          <div class="chip" data-v="ontem">Ontem</div>
+          <div class="chip" data-v="semana">Esta Semana</div>
+          <div class="chip" data-v="mes">Este Mês</div>
+          <div class="chip" data-v="dia-especifico">Um dia específico</div>
+          <div class="chip" data-v="mes-especifico">Um mês específico</div>
+          <div class="chip" data-v="tudo">Tudo</div>
+        </div>
+      </div>
+      <div class="row row-2" id="dash-dia-wrap" style="display:none;margin-top:12px;max-width:340px;">
+        <div class="field"><label>Escolha o dia</label><input type="date" id="dash-dia-input"></div>
+      </div>
+      <div class="row row-2" id="dash-mes-wrap" style="display:none;margin-top:12px;max-width:340px;">
+        <div class="field"><label>Escolha o mês</label><input type="month" id="dash-mes-input"></div>
+      </div>
+    </div>
+    <div class="metrics-grid" id="dash-metrics"></div>
+    <div class="grid g-2">
+      <div class="card">
+        <h2><span class="dot"></span>Top Sabores</h2>
+        <p class="section-sub" id="dash-ranking-sub">Inteiras contam 1, meias contam 0,5, terços contam 0,33</p>
+        <div id="dash-ranking"></div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--olive)"></span>Top Refrigerantes / Bebidas</h2>
+        <div id="dash-ranking-bebidas"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot"></span>Faturamento por Pagamento</h2>
+      <div id="dash-pagamentos"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal-content"></div></div>
+<div class="toast" id="toast"></div>
+<div class="print-report" id="print-report"></div>
+
+<script>
+/* ============================================================
+   API helper
+============================================================ */
+const API = '/api';
+let TOKEN = localStorage.getItem('pizzaria_token') || null;
+let USER = JSON.parse(localStorage.getItem('pizzaria_user') || 'null');
+let CATEGORIAS = []; // precisa existir desde já: o PDV monta sua primeira linha de item na carga do script
+let CATEGORIAS_MAPA = {};
+
+async function api(path, opts={}){
+  const headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+  if(TOKEN) headers['Authorization'] = 'Bearer '+TOKEN;
+  const res = await fetch(API+path, Object.assign({}, opts, {headers}));
+  $('#conn-dot').classList.remove('off');
+  let data = null;
+  try{ data = await res.json(); }catch(e){}
+  if(!res.ok){
+    if(res.status===401){ doLogout(); }
+    throw new Error((data&&data.erro) || 'Erro na requisição');
+  }
+  return data;
+}
+
+const $ = (s,ctx=document)=>ctx.querySelector(s);
+const $$ = (s,ctx=document)=>[...ctx.querySelectorAll(s)];
+const fmt = n => "R$ " + (Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDT = iso => { const d = new Date(iso); return d.toLocaleDateString('pt-BR') + " " + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); };
+function pagamentoResumo(o){
+  if(o.pagamento==='Dividido' && o.pagamentos && o.pagamentos.length){
+    return o.pagamentos.map(p=>`${p.forma} ${fmt(p.valor)}`).join(' + ');
+  }
+  return o.pagamento;
+}
+
+function toast(msg, isErr){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ============================================================
+   LOGIN / SESSION
+============================================================ */
+function showApp(){
+  $('#login-screen').classList.add('hidden');
+  $('#app-shell').classList.remove('hidden');
+  $('#userbox-nome').textContent = USER.nome + ' ('+USER.papel+')';
+  bootApp();
+}
+function showLogin(){
+  $('#login-screen').classList.remove('hidden');
+  $('#app-shell').classList.add('hidden');
+}
+function doLogout(){
+  TOKEN=null; USER=null;
+  localStorage.removeItem('pizzaria_token'); localStorage.removeItem('pizzaria_user');
+  showLogin();
+}
+$('#logout-btn').addEventListener('click', doLogout);
+
+$('#login-btn').addEventListener('click', async ()=>{
+  const nome = $('#login-nome').value.trim();
+  const senha = $('#login-senha').value;
+  $('#login-err').textContent = '';
+  if(!nome || !senha){ $('#login-err').textContent = 'Preencha usuário e senha.'; return; }
+  try{
+    const data = await api('/auth/login', {method:'POST', body: JSON.stringify({nome,senha})});
+    TOKEN = data.token; USER = data.usuario;
+    localStorage.setItem('pizzaria_token', TOKEN);
+    localStorage.setItem('pizzaria_user', JSON.stringify(USER));
+    showApp();
+  }catch(e){ $('#login-err').textContent = e.message; }
+});
+$('#login-senha').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#login-btn').click(); });
+
+/* ============================================================
+   TABS
+============================================================ */
+$$('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    $$('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    $$('.view').forEach(v=>v.classList.remove('active'));
+    $('#view-'+tab.dataset.view).classList.add('active');
+    if(tab.dataset.view==='dash') renderDashboard();
+    if(tab.dataset.view==='vendas') renderVendas();
+    if(tab.dataset.view==='caixa') refreshCaixa();
+    if(tab.dataset.view==='caixasimples') loadCaixaSimples();
+    if(tab.dataset.view==='estoque') { loadEstoque(); loadCompras(); loadProdutos(); }
+    if(tab.dataset.view==='categorias') { loadCategorias(); }
+    if(tab.dataset.view==='ficha') { loadFichas(); }
+    if(tab.dataset.view==='financeiro') { loadContas(); }
+    if(tab.dataset.view==='equipe') { loadEquipe(); loadPagamentosEquipe(); }
+    if(tab.dataset.view==='relatorios') { loadHistCaixaRelatorios(); }
+  });
+});
+
+function wireChipGroup(sel, onChange){
+  const el = $(sel);
+  el.addEventListener('click', e=>{
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    $$('.chip', el).forEach(c=>c.classList.remove('on'));
+    chip.classList.add('on');
+    onChange(chip.dataset.v);
+  });
+}
+function activeChip(sel){ return $('.chip.on', $(sel))?.dataset.v; }
+
+wireChipGroup('#pdv-canal', v=>{ $('#pdv-frete-wrap').style.display = (v==='Delivery Próprio') ? 'grid' : 'none'; calcPdvTotals(); });
+
+/* ============================================================
+   PDV — item lines
+============================================================ */
+let pdvItems = [];
+let itemSeq = 1;
+let CATALOGO_SABORES = [];
+
+async function loadCatalogo(){
+  try{
+    const c = await api('/catalogo');
+    CATALOGO_SABORES = c.sabores || [];
+    const dl = document.getElementById('sabores-list') || document.createElement('datalist');
+    dl.id = 'sabores-list';
+    dl.innerHTML = CATALOGO_SABORES.map(s=>`<option value="${s}">`).join('');
+    if(!document.getElementById('sabores-list')) document.body.appendChild(dl);
+  }catch(e){ /* silencioso: não é crítico se falhar */ }
+}
+
+function addItemLine(preset){
+  pdvItems.push(Object.assign({id:itemSeq++, cat:'Pizza Inteira', sabor:'', qtd:1, valor:0}, preset||{}));
+  renderItemLines();
+}
+function renderItemLines(){
+  const wrap = $('#pdv-items');
+  wrap.innerHTML = pdvItems.map(it=>`
+      <div class="item-line">
+        <select data-f="cat" data-id="${it.id}">
+          ${CATEGORIAS.map(c=>`<option ${it.cat===c.nome?'selected':''}>${c.nome}</option>`).join('')}
+        </select>
+        <input type="text" placeholder="Sabor/Item" data-f="sabor" data-id="${it.id}" value="${it.sabor}" list="${(CATEGORIAS_MAPA[it.cat]&&CATEGORIAS_MAPA[it.cat].tipo==='pizza')?'sabores-list':'estoque-list'}">
+        <input type="number" min="0" step="1" placeholder="Qtd" data-f="qtd" data-id="${it.id}" value="${it.qtd}">
+        <input type="number" min="0" step="0.5" placeholder="Valor un." data-f="valor" data-id="${it.id}" value="${it.valor||''}">
+        <button class="rm" data-rm="${it.id}" title="Remover">×</button>
+      </div>`).join('');
+  calcPdvTotals();
+}
+$('#pdv-add-item').addEventListener('click', ()=>addItemLine());
+$('#pdv-items').addEventListener('input', e=>{
+  const f = e.target.dataset.f, id = +e.target.dataset.id;
+  if(!f) return;
+  const it = pdvItems.find(x=>x.id===id);
+  if(!it) return;
+  it[f] = (f==='qtd'||f==='valor') ? parseFloat(e.target.value)||0 : e.target.value;
+  if(f==='cat'){ renderItemLines(); } else { calcPdvTotals(); }
+});
+$('#pdv-items').addEventListener('click', e=>{
+  if(e.target.dataset.rm){ pdvItems = pdvItems.filter(x=>x.id!=e.target.dataset.rm); renderItemLines(); }
+});
+// Auto-preenche o valor unitário quando o item digitado já tem preço cadastrado (não sobrescreve valor já preenchido).
+$('#pdv-items').addEventListener('blur', e=>{
+  if(e.target.dataset.f !== 'sabor') return;
+  const id = +e.target.dataset.id;
+  const it = pdvItems.find(x=>x.id===id);
+  if(!it || it.valor>0) return;
+  const preco = PRECOS_MAPA[chavePreco(it.cat, it.sabor)];
+  if(preco != null){ it.valor = preco; renderItemLines(); }
+}, true);
+function itemsSubtotal(){ return pdvItems.reduce((s,it)=> s + (it.qtd*it.valor||0), 0); }
+
+/* ============================================================
+   PDV — payment lines (suporta dividir entre várias formas)
+============================================================ */
+let pdvPagamentos = [{id:1, forma:'Dinheiro', valor:0, valorPago:0}];
+let pagSeq = 2;
+
+function pdvTotalAtual(){
+  const frete = ($('#pdv-frete-wrap').style.display!=='none') ? (parseFloat($('#pdv-frete').value)||0) : 0;
+  return itemsSubtotal() + frete;
+}
+function calcPdvTotals(){
+  const total = pdvTotalAtual();
+  $('#pdv-total').textContent = fmt(total);
+  // Enquanto houver só 1 forma de pagamento, ela acompanha o total automaticamente (fluxo rápido de balcão).
+  if(pdvPagamentos.length===1){ pdvPagamentos[0].valor = total; }
+  renderPagamentos();
+}
+$('#pdv-frete').addEventListener('input', calcPdvTotals);
+
+function addPagamentoLine(){
+  pdvPagamentos.push({id: pagSeq++, forma:'Pix', valor:0, valorPago:0});
+  renderPagamentos();
+}
+function renderPagamentos(){
+  const wrap = $('#pdv-pagamentos');
+  wrap.innerHTML = pdvPagamentos.map(p=>{
+    const troco = p.forma==='Dinheiro' ? Math.max((p.valorPago||0)-(p.valor||0),0) : 0;
+    return `
+    <div class="pagamento-line">
+      <select data-pf="forma" data-pid="${p.id}">
+        ${['Dinheiro','Pix','Crédito','Débito'].map(f=>`<option ${p.forma===f?'selected':''}>${f}</option>`).join('')}
+      </select>
+      <input type="number" min="0" step="0.5" placeholder="Valor" data-pf="valor" data-pid="${p.id}" value="${p.valor||''}">
+      ${p.forma==='Dinheiro'
+        ? `<input type="number" min="0" step="0.5" placeholder="Pago pelo cliente" data-pf="valorPago" data-pid="${p.id}" value="${p.valorPago||''}">`
+        : `<div class="troco-mini">valor exato</div>`}
+      <div class="troco-mini" data-troco-de="${p.id}">${p.forma==='Dinheiro' ? 'troco '+fmt(troco) : ''}</div>
+      ${pdvPagamentos.length>1 ? `<button class="rm" data-prm="${p.id}" title="Remover">×</button>` : '<span></span>'}
+    </div>`;
+  }).join('');
+  atualizarResumoPagamentos();
+}
+$('#pdv-add-pagamento').addEventListener('click', addPagamentoLine);
+$('#pdv-pagamentos').addEventListener('input', e=>{
+  const f = e.target.dataset.pf, id = +e.target.dataset.pid;
+  if(!f) return;
+  const p = pdvPagamentos.find(x=>x.id===id);
+  if(!p) return;
+  p[f] = (f==='valor'||f==='valorPago') ? parseFloat(e.target.value)||0 : e.target.value;
+  if(f==='forma'){ renderPagamentos(); } else { atualizarResumoPagamentos(); atualizarTrocoInline(); }
+});
+$('#pdv-pagamentos').addEventListener('click', e=>{
+  if(e.target.dataset.prm){ pdvPagamentos = pdvPagamentos.filter(x=>x.id!=e.target.dataset.prm); renderPagamentos(); }
+});
+function atualizarTrocoInline(){
+  // recalcula só os textos de troco sem re-renderizar tudo (mantém o foco do campo sendo digitado)
+  pdvPagamentos.forEach(p=>{
+    if(p.forma!=='Dinheiro') return;
+    const trocoEl = document.querySelector(`[data-troco-de="${p.id}"]`);
+    if(trocoEl){ trocoEl.textContent = 'troco '+fmt(Math.max((p.valorPago||0)-(p.valor||0),0)); }
+  });
+}
+function atualizarResumoPagamentos(){
+  const total = pdvTotalAtual();
+  const alocado = pdvPagamentos.reduce((s,p)=>s+(p.valor||0),0);
+  const dif = total - alocado;
+  const el = $('#pdv-pagamentos-resumo');
+  if(Math.abs(dif) < 0.01){ el.innerHTML = '<span style="color:var(--ok);">✓ Pagamento cobre o total do pedido.</span>'; }
+  else if(dif > 0){ el.innerHTML = `<span style="color:var(--warn);">Falta alocar ${fmt(dif)}.</span>`; }
+  else{ el.innerHTML = `<span style="color:var(--danger);">Pagamento excede o total em ${fmt(Math.abs(dif))}.</span>`; }
+}
+function pagamentosFecham(){
+  return Math.abs(pdvTotalAtual() - pdvPagamentos.reduce((s,p)=>s+(p.valor||0),0)) < 0.01;
+}
+
+$('#pdv-retro-toggle').addEventListener('click', function(){
+  this.classList.toggle('on');
+  $('#pdv-retro-fields').style.display = this.classList.contains('on') ? 'grid' : 'none';
+  atualizarBannerRetro();
+});
+$('#pdv-retro-data').addEventListener('change', atualizarBannerRetro);
+function atualizarBannerRetro(){
+  const banner = $('#pdv-retro-banner');
+  const on = $('#pdv-retro-toggle').classList.contains('on');
+  if(!on){ banner.style.display='none'; return; }
+  const dataVal = $('#pdv-retro-data').value;
+  banner.style.display = 'block';
+  banner.textContent = dataVal
+    ? `⚠ Modo retroativo ligado — lançando para ${dataVal.split('-').reverse().join('/')}. Desmarque o toggle quando terminar.`
+    : `⚠ Modo retroativo ligado — escolha a data abaixo.`;
+}
+
+$('#pdv-finalizar').addEventListener('click', async ()=>{
+  if(pdvItems.length===0 || itemsSubtotal()<=0){ toast('Adicione ao menos um item com valor.', true); return; }
+  if(!pagamentosFecham()){ toast('A soma das formas de pagamento precisa bater com o total do pedido.', true); return; }
+  const canal = activeChip('#pdv-canal');
+  const frete = (canal==='Delivery Próprio') ? (parseFloat($('#pdv-frete').value)||0) : 0;
+  const retroOn = $('#pdv-retro-toggle').classList.contains('on');
+  let dataHora = new Date().toISOString();
+  if(retroOn && $('#pdv-retro-data').value){
+    const [y,m,d] = $('#pdv-retro-data').value.split('-').map(Number);
+    const [hh,mm] = ($('#pdv-retro-hora').value||'12:00').split(':').map(Number);
+    dataHora = new Date(y,m-1,d,hh||12,mm||0).toISOString();
+  }
+  const payload = {
+    comanda: $('#pdv-comanda').value, cliente: $('#pdv-cliente').value, canal,
+    itens: pdvItems.map(it=>({categoria:it.cat, produto:it.sabor||'Item', quantidade:it.qtd, valorUnitario:it.valor})),
+    frete,
+    pagamentos: pdvPagamentos.map(p=>({forma:p.forma, valor:p.valor, valorPago: p.forma==='Dinheiro'?p.valorPago:undefined})),
+    retroativo: retroOn, dataHora, operador: USER.nome,
+    sessaoId: caixaAtual ? caixaAtual.id : null
+  };
+  try{
+    await api('/pedidos', {method:'POST', body: JSON.stringify(payload)});
+    toast(retroOn ? 'Venda lançada para '+$('#pdv-retro-data').value.split('-').reverse().join('/')+'!' : 'Venda lançada com sucesso!');
+    $('#pdv-comanda').value=''; $('#pdv-cliente').value='';
+    pdvItems = []; renderItemLines();
+    pdvPagamentos = [{id:pagSeq++, forma:'Dinheiro', valor:0, valorPago:0}]; renderPagamentos();
+    // A data retroativa fica marcada entre um lançamento e outro — pensado pra quando
+    // você está lançando vários pedidos seguidos do mesmo dia passado (ex: transcrevendo
+    // do Anota AI em lote). Pra voltar ao normal, é só desmarcar o toggle manualmente.
+    loadRecentOrders();
+    loadCatalogo();
+  }catch(e){ toast(e.message, true); }
+});
+addItemLine({cat:'Pizza Inteira'});
+renderPagamentos();
+
+async function loadRecentOrders(){
+  try{
+    const rows = await api('/pedidos?limite=6');
+    const wrap = $('#pdv-recent');
+    if(rows.length===0){ wrap.innerHTML = '<div class="empty">Nenhum pedido lançado ainda.</div>'; return; }
+    wrap.innerHTML = rows.map(o=>`
+      <div class="receipt-ticket">
+        <div class="top"><span class="comanda">#${o.comanda||'—'}</span><span class="badge ${o.status==='Ativo'?'ativo':o.status==='Editado'?'editado':'cancelado'}">${o.status}</span></div>
+        <div class="meta">${o.canal} · ${fmtDT(o.data_hora)} ${o.retroativo?'· retroativo':''}</div>
+        <div class="top" style="margin-top:6px;"><span style="font-size:11.5px;color:var(--muted);">${pagamentoResumo(o)}${o.pagamento==='Dinheiro' && o.troco>0 ? ' · troco '+fmt(o.troco):''}</span><span class="val tnum">${fmt(o.total)}</span></div>
+      </div>`).join('');
+  }catch(e){ toast(e.message, true); }
+}
+
+/* ============================================================
+   VENDAS RECENTES
+============================================================ */
+let vendasSearchTimer;
+$('#vendas-search').addEventListener('input', ()=>{ clearTimeout(vendasSearchTimer); vendasSearchTimer = setTimeout(renderVendas, 250); });
+$('#vendas-data').addEventListener('change', renderVendas);
+$('#vendas-data-limpar').addEventListener('click', ()=>{ $('#vendas-data').value=''; renderVendas(); });
+
+$('#vendas-exportar').addEventListener('click', async ()=>{
+  const q = $('#vendas-search').value.trim();
+  const dataFiltro = $('#vendas-data').value;
+  let url = API + '/pedidos/export';
+  const params = [];
+  if(q) params.push('busca='+encodeURIComponent(q));
+  if(dataFiltro){
+    const [y,m,d] = dataFiltro.split('-').map(Number);
+    const start = new Date(y, m-1, d, 0,0,0,0);
+    const end = new Date(y, m-1, d, 23,59,59,999);
+    params.push('inicio='+encodeURIComponent(start.toISOString()));
+    params.push('fim='+encodeURIComponent(end.toISOString()));
+  }
+  if(params.length) url += '?' + params.join('&');
+  try{
+    const res = await fetch(url, { headers: { 'Authorization': 'Bearer '+TOKEN } });
+    if(!res.ok) throw new Error('Não foi possível gerar o CSV.');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vendas_' + (dataFiltro || new Date().toISOString().slice(0,10)) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('CSV baixado — abra no Excel ou Google Sheets.');
+  }catch(e){ toast(e.message, true); }
+});
+
+function qtdPizzasPedido(o){
+  return (o.itens||[]).reduce((s,it)=>{
+    const cat = CATEGORIAS_MAPA[it.categoria];
+    if(cat && cat.tipo==='pizza') return s + it.quantidade * cat.fracao;
+    return s;
+  }, 0);
+}
+
+async function renderVendas(){
+  const q = $('#vendas-search').value.trim();
+  const dataFiltro = $('#vendas-data').value;
+  const tbody = $('#vendas-tbody');
+  try{
+    let url = '/pedidos?limite=500';
+    if(q) url += '&busca='+encodeURIComponent(q);
+    if(dataFiltro){
+      const [y,m,d] = dataFiltro.split('-').map(Number);
+      const start = new Date(y, m-1, d, 0,0,0,0);
+      const end = new Date(y, m-1, d, 23,59,59,999);
+      url += `&inicio=${encodeURIComponent(start.toISOString())}&fim=${encodeURIComponent(end.toISOString())}`;
+    }
+    const rows = await api(url);
+
+    const resumoEl = $('#vendas-resumo-dia');
+    if(dataFiltro){
+      const ativos = rows.filter(o=>o.status!=='Cancelado');
+      const totalPizzas = ativos.reduce((s,o)=>s+qtdPizzasPedido(o),0);
+      const totalFat = ativos.reduce((s,o)=>s+o.total,0);
+      resumoEl.innerHTML = `Nesse dia: <b style="color:var(--cream)">${ativos.length}</b> pedidos ativos · <b style="color:var(--cream)">${totalPizzas}</b> pizzas vendidas · <b style="color:var(--cream)">${fmt(totalFat)}</b> em faturamento. <span style="color:var(--muted-dim)">(pedidos cancelados não entram nessa soma, mas aparecem na tabela riscados)</span>`;
+    } else {
+      resumoEl.innerHTML = '';
+    }
+
+    if(rows.length===0){ tbody.innerHTML = `<tr><td colspan="9" class="empty">Nenhum pedido encontrado.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(o=>`
+      <tr class="${o.status==='Cancelado'?'cancelado':''}">
+        <td>#${o.comanda||'—'}</td><td>${o.cliente||'—'}</td>
+        <td><span class="badge canal">${o.canal}</span></td>
+        <td class="tnum">${fmtDT(o.data_hora)}</td>
+        <td class="tnum">${qtdPizzasPedido(o)}</td>
+        <td class="tnum">${fmt(o.total)}</td><td>${pagamentoResumo(o)}</td>
+        <td><span class="badge ${o.status==='Ativo'?'ativo':o.status==='Editado'?'editado':'cancelado'}">${o.status}</span></td>
+        <td class="actions-cell">
+          <button class="btn btn-sm btn-ghost" data-edit="${o.id}" ${o.status==='Cancelado'?'disabled':''}>Editar</button>
+          <button class="btn btn-sm btn-danger" data-cancel="${o.id}" ${o.status==='Cancelado'?'disabled':''}>Cancelar</button>
+          <button class="btn btn-sm btn-ghost" data-historico="${o.id}">Histórico</button>
+        </td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message, true); }
+}
+$('#vendas-tbody').addEventListener('click', async e=>{
+  if(e.target.dataset.edit) openEditModal(e.target.dataset.edit);
+  if(e.target.dataset.cancel) openCancelModal(e.target.dataset.cancel);
+  if(e.target.dataset.historico) await openHistoricoModal(e.target.dataset.historico);
+});
+async function openHistoricoModal(id){
+  try{
+    const eventos = await api('/pedidos/'+id+'/historico');
+    $('#modal-content').innerHTML = `
+      <h3>Histórico do Pedido</h3>
+      ${eventos.length ? eventos.map(ev=>`
+        <div class="receipt-ticket">
+          <div class="top">
+            <span class="badge ${ev.acao==='Cancelado'?'cancelado':ev.acao==='Editado'?'editado':'ativo'}">${ev.acao}</span>
+            <span class="meta">${new Date(ev.criado_em+'Z').toLocaleString('pt-BR')}</span>
+          </div>
+          <div class="meta">Por: <b style="color:var(--cream)">${ev.usuario||'—'}</b></div>
+          <div class="meta" style="margin-top:4px;">${ev.detalhes||''}</div>
+        </div>
+      `).join('') : '<div class="empty">Nenhum evento registrado para este pedido.</div>'}
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button class="btn btn-ghost" id="hist-close">Fechar</button>
+      </div>`;
+    $('#modal-bg').classList.add('show');
+    $('#hist-close').addEventListener('click', closeModal);
+  }catch(e){ toast(e.message, true); }
+}
+function closeModal(){ $('#modal-bg').classList.remove('show'); }
+
+// Modal de confirmação genérico para ações de alto impacto (ex: fechar caixa).
+// Uso: confirmAction('Título', 'Mensagem explicando a ação', () => { ...ação... })
+function confirmAction(titulo, mensagem, onConfirm){
+  $('#modal-content').innerHTML = `
+    <h3>${titulo}</h3>
+    <p style="font-size:13px;color:var(--muted);margin-top:-6px;">${mensagem}</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-ghost" id="ca-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="ca-confirm">Confirmar</button>
+    </div>`;
+  $('#modal-bg').classList.add('show');
+  $('#ca-cancel').addEventListener('click', closeModal);
+  $('#ca-confirm').addEventListener('click', ()=>{ closeModal(); onConfirm(); });
+}
+$('#modal-bg').addEventListener('click', e=>{ if(e.target.id==='modal-bg') closeModal(); });
+
+let emItens = [];
+let emItemSeq = 1;
+let emPagamentos = [];
+let emPagSeq = 1;
+async function openEditModal(id){
+  const rows = await api('/pedidos?limite=500');
+  const o = rows.find(x=>String(x.id)===String(id));
+  if(!o) return;
+  emItens = (o.itens||[]).map(it=>({id: emItemSeq++, cat: it.categoria, sabor: it.produto, qtd: it.quantidade, valor: it.valor_unitario}));
+  emPagamentos = (o.pagamentos&&o.pagamentos.length ? o.pagamentos : [{forma:o.pagamento==='Dividido'?'Pix':o.pagamento, valor:o.total, valor_pago:o.valor_pago}])
+    .map(p=>({id: emPagSeq++, forma:p.forma, valor:p.valor, valorPago:p.valor_pago||0}));
+
+  $('#modal-content').innerHTML = `
+    <h3>Editar Pedido #${o.comanda||'—'}</h3>
+    <div class="field"><label>Nº Comanda</label><input type="text" id="em-comanda" value="${o.comanda||''}"></div>
+    <div class="field"><label>Cliente</label><input type="text" id="em-cliente" value="${o.cliente||''}"></div>
+    <div class="field"><label>Taxa de Entrega (R$)</label><input type="number" id="em-frete" value="${o.frete}"></div>
+    <div class="field">
+      <label>Itens do Pedido</label>
+      <div id="em-itens"></div>
+      <button class="btn btn-ghost btn-sm" id="em-add-item" type="button">+ Adicionar item</button>
+    </div>
+    <div class="totalbar"><span style="color:var(--muted);font-size:12px;">Novo total</span><span class="big tnum" id="em-total">R$ 0,00</span></div>
+    <div class="field" style="margin-top:12px;">
+      <label>Forma de Pagamento</label>
+      <div id="em-pagamentos"></div>
+      <button class="btn btn-ghost btn-sm" id="em-add-pagamento" type="button">+ Dividir em outra forma de pagamento</button>
+      <div class="section-sub" id="em-pagamentos-resumo" style="margin-top:6px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="btn btn-ghost" id="em-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="em-save">Salvar alterações</button>
+    </div>`;
+  $('#modal-bg').classList.add('show');
+  renderEmItens();
+  renderEmPagamentos();
+  $('#em-frete').addEventListener('input', ()=>{ updateEmTotal(); syncEmPagamentoUnico(); });
+  $('#em-add-item').addEventListener('click', ()=>{
+    emItens.push({id: emItemSeq++, cat:'Pizza Inteira', sabor:'', qtd:1, valor:0});
+    renderEmItens();
+    syncEmPagamentoUnico();
+  });
+  $('#em-add-pagamento').addEventListener('click', ()=>{
+    emPagamentos.push({id: emPagSeq++, forma:'Pix', valor:0, valorPago:0});
+    renderEmPagamentos();
+  });
+  $('#em-cancel').addEventListener('click', closeModal);
+  $('#em-save').addEventListener('click', async ()=>{
+    const itensValidos = emItens.filter(it=>it.sabor && it.qtd>0);
+    if(itensValidos.length===0){ toast('O pedido precisa de ao menos um item válido.', true); return; }
+    const totalAtual = emItens.reduce((s,it)=>s+(it.qtd*it.valor||0),0) + (parseFloat($('#em-frete').value)||0);
+    const alocado = emPagamentos.reduce((s,p)=>s+(p.valor||0),0);
+    if(Math.abs(totalAtual-alocado) > 0.01){ toast('A soma das formas de pagamento precisa bater com o total do pedido.', true); return; }
+    try{
+      await api('/pedidos/'+id, {method:'PUT', body: JSON.stringify({
+        comanda: $('#em-comanda').value, cliente: $('#em-cliente').value,
+        frete: parseFloat($('#em-frete').value)||0,
+        pagamentos: emPagamentos.map(p=>({forma:p.forma, valor:p.valor, valorPago: p.forma==='Dinheiro'?p.valorPago:undefined})),
+        itens: itensValidos.map(it=>({categoria:it.cat, produto:it.sabor, quantidade:it.qtd, valorUnitario:it.valor}))
+      })});
+      closeModal(); renderVendas(); loadRecentOrders(); toast('Pedido atualizado.');
+    }catch(e){ toast(e.message, true); }
+  });
+}
+function emTotalAtual(){
+  return emItens.reduce((s,it)=>s+(it.qtd*it.valor||0),0) + (parseFloat($('#em-frete')?.value)||0);
+}
+function syncEmPagamentoUnico(){
+  if(emPagamentos.length===1){ emPagamentos[0].valor = emTotalAtual(); renderEmPagamentos(); }
+}
+function renderEmPagamentos(){
+  const wrap = $('#em-pagamentos');
+  wrap.innerHTML = emPagamentos.map(p=>{
+    const troco = p.forma==='Dinheiro' ? Math.max((p.valorPago||0)-(p.valor||0),0) : 0;
+    return `
+    <div class="pagamento-line">
+      <select data-epf="forma" data-epid="${p.id}">
+        ${['Dinheiro','Pix','Crédito','Débito'].map(f=>`<option ${p.forma===f?'selected':''}>${f}</option>`).join('')}
+      </select>
+      <input type="number" min="0" step="0.5" placeholder="Valor" data-epf="valor" data-epid="${p.id}" value="${p.valor||''}">
+      ${p.forma==='Dinheiro'
+        ? `<input type="number" min="0" step="0.5" placeholder="Pago pelo cliente" data-epf="valorPago" data-epid="${p.id}" value="${p.valorPago||''}">`
+        : `<div class="troco-mini">valor exato</div>`}
+      <div class="troco-mini" data-etroco-de="${p.id}">${p.forma==='Dinheiro' ? 'troco '+fmt(troco) : ''}</div>
+      ${emPagamentos.length>1 ? `<button class="rm" data-eprm="${p.id}" title="Remover">×</button>` : '<span></span>'}
+    </div>`;
+  }).join('');
+  atualizarResumoEmPagamentos();
+}
+function atualizarResumoEmPagamentos(){
+  const total = emTotalAtual();
+  const alocado = emPagamentos.reduce((s,p)=>s+(p.valor||0),0);
+  const dif = total - alocado;
+  const el = $('#em-pagamentos-resumo');
+  if(!el) return;
+  if(Math.abs(dif) < 0.01){ el.innerHTML = '<span style="color:var(--ok);">✓ Pagamento cobre o total do pedido.</span>'; }
+  else if(dif > 0){ el.innerHTML = `<span style="color:var(--warn);">Falta alocar ${fmt(dif)}.</span>`; }
+  else{ el.innerHTML = `<span style="color:var(--danger);">Pagamento excede o total em ${fmt(Math.abs(dif))}.</span>`; }
+}
+$('#modal-bg').addEventListener('input', e=>{
+  const f = e.target.dataset.epf, id = +e.target.dataset.epid;
+  if(!f) return;
+  const p = emPagamentos.find(x=>x.id===id);
+  if(!p) return;
+  p[f] = (f==='valor'||f==='valorPago') ? parseFloat(e.target.value)||0 : e.target.value;
+  if(f==='forma'){ renderEmPagamentos(); }
+  else{
+    atualizarResumoEmPagamentos();
+    if(f==='valorPago'){
+      const trocoEl = document.querySelector(`[data-etroco-de="${id}"]`);
+      if(trocoEl){ trocoEl.textContent = 'troco '+fmt(Math.max((p.valorPago||0)-(p.valor||0),0)); }
+    }
+  }
+});
+$('#modal-bg').addEventListener('click', e=>{
+  if(e.target.dataset.eprm){ emPagamentos = emPagamentos.filter(x=>x.id!=e.target.dataset.eprm); renderEmPagamentos(); }
+});
+function renderEmItens(){
+  const wrap = $('#em-itens');
+  wrap.innerHTML = emItens.map(it=>`
+    <div class="item-line">
+      <select data-ef="cat" data-eid="${it.id}">
+        ${CATEGORIAS.map(c=>`<option ${it.cat===c.nome?'selected':''}>${c.nome}</option>`).join('')}
+      </select>
+      <input type="text" placeholder="Sabor/Item" data-ef="sabor" data-eid="${it.id}" value="${it.sabor}" list="${(CATEGORIAS_MAPA[it.cat]&&CATEGORIAS_MAPA[it.cat].tipo==='pizza')?'sabores-list':'estoque-list'}">
+      <input type="number" min="0" step="1" placeholder="Qtd" data-ef="qtd" data-eid="${it.id}" value="${it.qtd}">
+      <input type="number" min="0" step="0.5" placeholder="Valor un." data-ef="valor" data-eid="${it.id}" value="${it.valor||''}">
+      <button class="rm" data-erm="${it.id}">×</button>
+    </div>`).join('');
+  updateEmTotal();
+}
+$('#modal-bg').addEventListener('input', e=>{
+  const f=e.target.dataset.ef, id=+e.target.dataset.eid;
+  if(!f) return;
+  const it = emItens.find(x=>x.id===id);
+  if(!it) return;
+  it[f] = (f==='qtd'||f==='valor') ? parseFloat(e.target.value)||0 : e.target.value;
+  if(f==='cat'){ renderEmItens(); } else { updateEmTotal(); }
+});
+$('#modal-bg').addEventListener('click', e=>{
+  if(e.target.dataset.erm){ emItens = emItens.filter(x=>x.id!=e.target.dataset.erm); renderEmItens(); }
+});
+$('#modal-bg').addEventListener('blur', e=>{
+  if(e.target.dataset.ef !== 'sabor') return;
+  const id = +e.target.dataset.eid;
+  const it = emItens.find(x=>x.id===id);
+  if(!it || it.valor>0) return;
+  const preco = PRECOS_MAPA[chavePreco(it.cat, it.sabor)];
+  if(preco != null){ it.valor = preco; renderEmItens(); }
+}, true);
+function updateEmTotal(){
+  const totalEl = $('#em-total');
+  if(!totalEl) return;
+  const subtotal = emItens.reduce((s,it)=>s+(it.qtd*it.valor||0),0);
+  const frete = parseFloat($('#em-frete')?.value)||0;
+  totalEl.textContent = fmt(subtotal+frete);
+  if(emPagamentos && emPagamentos.length===1){ emPagamentos[0].valor = subtotal+frete; renderEmPagamentos(); }
+  else if(typeof atualizarResumoEmPagamentos==='function'){ atualizarResumoEmPagamentos(); }
+}
+function openCancelModal(id){
+  $('#modal-content').innerHTML = `
+    <h3>Cancelar Pedido</h3>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:-6px;">O pedido sai do faturamento mas continua no histórico para auditoria.</p>
+    <div class="field"><label>Motivo do Cancelamento</label><textarea id="cm-motivo" rows="3" placeholder="ex: cliente desistiu, pedido duplicado..."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="btn btn-ghost" id="cm-back">Voltar</button>
+      <button class="btn btn-danger" style="background:var(--danger);color:#fff;" id="cm-confirm">Confirmar cancelamento</button>
+    </div>`;
+  $('#modal-bg').classList.add('show');
+  $('#cm-back').addEventListener('click', closeModal);
+  $('#cm-confirm').addEventListener('click', async ()=>{
+    try{
+      await api('/pedidos/'+id+'/cancelar', {method:'POST', body: JSON.stringify({motivo: $('#cm-motivo').value})});
+      closeModal(); renderVendas(); loadRecentOrders(); toast('Pedido cancelado.');
+    }catch(e){ toast(e.message, true); }
+  });
+}
+
+/* ============================================================
+   CAIXA
+============================================================ */
+let caixaAtual = null;
+
+async function refreshCaixa(){
+  try{
+    caixaAtual = await api('/caixa/atual');
+    renderCaixaUI();
+    loadHistCaixa();
+  }catch(e){ toast(e.message, true); }
+}
+function renderCaixaUI(){
+  const aberto = !!caixaAtual;
+  $('#caixa-abertura-form').style.display = aberto ? 'none' : 'block';
+  $('#caixa-quickactions').hidden = !aberto;
+  $('#caixa-editar').hidden = !aberto;
+  const resumo = $('#caixa-resumo');
+  if(!aberto){ resumo.innerHTML = '<div class="empty">Abra o caixa para ver a conferência.</div>'; }
+  else{
+    const dataLabel = caixaAtual.data_referencia
+      ? new Date(caixaAtual.data_referencia+'T00:00:00').toLocaleDateString('pt-BR') + ' (retroativo)'
+      : new Date(caixaAtual.aberto_em+'Z').toLocaleDateString('pt-BR') + ' (hoje)';
+    resumo.innerHTML = `
+      <div style="font-size:12.5px;color:var(--muted);line-height:2;">
+        Data do Caixa: <b style="color:var(--tomato-light);">${dataLabel}</b><br>
+        Operador: <b style="color:var(--cream)">${caixaAtual.operador}</b><br>
+        Fundo Inicial: <b class="tnum" style="color:var(--cream)">${fmt(caixaAtual.fundo_inicial)}</b><br>
+        Vendas em Dinheiro: <b class="tnum" style="color:var(--cream)">${fmt(caixaAtual.vendasDinheiro)}</b><br>
+        (+) Suprimentos: <b class="tnum" style="color:var(--cream)">${fmt(caixaAtual.suprimentos)}</b><br>
+        (−) Sangrias: <b class="tnum" style="color:var(--cream)">${fmt(caixaAtual.sangrias)}</b><br>
+        <span style="color:var(--tomato-light);font-weight:700;">Dinheiro Esperado: ${fmt(caixaAtual.esperado)}</span>
+      </div>`;
+    const movTbody = $('#mov-tbody');
+    movTbody.innerHTML = caixaAtual.movimentos.length ? caixaAtual.movimentos.map(m=>`
+      <tr><td>${new Date(m.criado_em+'Z').toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${m.tipo}</td><td>${m.motivo||'—'}</td>
+      <td class="tnum" style="color:${m.tipo==='Sangria'?'var(--danger)':'var(--ok)'}">${m.tipo==='Sangria'?'-':'+'} ${fmt(m.valor)}</td>
+      <td class="actions-cell"><button class="btn btn-sm btn-ghost" data-editar-mov="${m.id}">Editar</button><button class="btn btn-sm btn-danger" data-excluir-mov="${m.id}">Excluir</button></td></tr>
+    `).join('') : '<tr><td colspan="5" class="empty">Nenhuma movimentação no turno.</td></tr>';
+  }
+}
+$('#caixa-editar').addEventListener('click', ()=>{
+  if(!caixaAtual) return;
+  $('#modal-content').innerHTML = `
+    <h3>Editar Caixa Aberto</h3>
+    <div class="field"><label>Operador</label><input type="text" id="ce-operador" value="${caixaAtual.operador}"></div>
+    <div class="field"><label>Fundo de Troco (R$)</label><input type="number" id="ce-fundo" value="${caixaAtual.fundo_inicial}" step="1" min="0"></div>
+    <div class="field"><label>Data do Caixa</label><input type="date" id="ce-data" value="${caixaAtual.data_referencia || ''}">
+      <p class="section-sub" style="margin-top:6px;">Deixe em branco para manter a data/hora reais de agora.</p>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="btn btn-ghost" id="ce-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="ce-save">Salvar</button>
+    </div>`;
+  $('#modal-bg').classList.add('show');
+  $('#ce-cancel').addEventListener('click', closeModal);
+  $('#ce-save').addEventListener('click', async ()=>{
+    const operador = $('#ce-operador').value.trim();
+    if(!operador){ toast('Informe o operador.', true); return; }
+    try{
+      caixaAtual = await api('/caixa/atual', {method:'PUT', body: JSON.stringify({
+        operador, fundoInicial: parseFloat($('#ce-fundo').value)||0, data: $('#ce-data').value || null
+      })});
+      closeModal(); renderCaixaUI(); toast('Caixa atualizado.');
+    }catch(e){ toast(e.message, true); }
+  });
+});
+$('#mov-tbody').addEventListener('click', async e=>{
+  if(e.target.dataset.excluirMov){
+    const mov = caixaAtual.movimentos.find(m=>String(m.id)===e.target.dataset.excluirMov);
+    confirmAction('Excluir Movimentação?', `${mov?.tipo||''} de ${fmt(mov?.valor||0)} (${mov?.motivo||'sem motivo'}) será removida. Essa ação não pode ser desfeita.`, async ()=>{
+      try{ caixaAtual = await api('/caixa/movimento/'+e.target.dataset.excluirMov, {method:'DELETE'}); renderCaixaUI(); toast('Movimentação excluída.'); }
+      catch(err){ toast(err.message, true); }
+    });
+  }
+  if(e.target.dataset.editarMov){
+    const mov = caixaAtual.movimentos.find(m=>String(m.id)===e.target.dataset.editarMov);
+    if(!mov) return;
+    $('#modal-content').innerHTML = `
+      <h3>Editar Movimentação</h3>
+      <div class="field"><label>Tipo</label>
+        <select id="me-tipo"><option ${mov.tipo==='Sangria'?'selected':''}>Sangria</option><option ${mov.tipo==='Suprimento'?'selected':''}>Suprimento</option></select>
+      </div>
+      <div class="field"><label>Motivo</label><input type="text" id="me-motivo" value="${mov.motivo||''}"></div>
+      <div class="field"><label>Valor (R$)</label><input type="number" id="me-valor" value="${mov.valor}" min="0" step="1"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+        <button class="btn btn-ghost" id="me-cancel">Cancelar</button>
+        <button class="btn btn-primary" id="me-save">Salvar</button>
+      </div>`;
+    $('#modal-bg').classList.add('show');
+    $('#me-cancel').addEventListener('click', closeModal);
+    $('#me-save').addEventListener('click', async ()=>{
+      const valor = parseFloat($('#me-valor').value)||0;
+      if(valor<=0){ toast('Informe um valor válido.', true); return; }
+      try{
+        caixaAtual = await api('/caixa/movimento/'+mov.id, {method:'PUT', body: JSON.stringify({tipo: $('#me-tipo').value, motivo: $('#me-motivo').value, valor})});
+        closeModal(); renderCaixaUI(); toast('Movimentação atualizada.');
+      }catch(err){ toast(err.message, true); }
+    });
+  }
+});
+$('#caixa-retro-toggle').addEventListener('click', function(){
+  this.classList.toggle('on');
+  $('#caixa-retro-data-wrap').style.display = this.classList.contains('on') ? 'block' : 'none';
+});
+$('#caixa-abrir').addEventListener('click', async ()=>{
+  const operador = $('#caixa-operador').value || USER.nome;
+  const fundoInicial = parseFloat($('#caixa-fundo').value)||0;
+  const retroOn = $('#caixa-retro-toggle').classList.contains('on');
+  const data = retroOn ? $('#caixa-retro-data').value : null;
+  if(retroOn && !data){ toast('Escolha a data retroativa do caixa.', true); return; }
+  try{
+    caixaAtual = await api('/caixa/abrir', {method:'POST', body: JSON.stringify({operador, fundoInicial, data})});
+    toast(retroOn ? `Caixa aberto com data de ${new Date(data+'T00:00:00').toLocaleDateString('pt-BR')}.` : 'Caixa aberto com fundo de '+fmt(fundoInicial));
+    $('#caixa-retro-toggle').classList.remove('on'); $('#caixa-retro-data-wrap').style.display='none'; $('#caixa-retro-data').value='';
+    renderCaixaUI();
+  }catch(e){ toast(e.message, true); }
+});
+function openMovModal(tipo){
+  $('#modal-content').innerHTML = `
+    <h3>${tipo==='Sangria' ? '− Registrar Sangria' : '+ Registrar Suprimento'}</h3>
+    <div class="field"><label>Motivo</label><input type="text" id="mv-motivo" placeholder="${tipo==='Sangria' ? 'ex: compra de emergência, diária motoboy...' : 'ex: reforço de troco'}"></div>
+    <div class="field"><label>Valor (R$)</label><input type="number" id="mv-valor" min="0" step="1"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="btn btn-ghost" id="mv-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="mv-save">Registrar</button>
+    </div>`;
+  $('#modal-bg').classList.add('show');
+  $('#mv-cancel').addEventListener('click', closeModal);
+  $('#mv-save').addEventListener('click', async ()=>{
+    const valor = parseFloat($('#mv-valor').value)||0;
+    if(valor<=0){ toast('Informe um valor válido.', true); return; }
+    try{
+      caixaAtual = await api('/caixa/movimento', {method:'POST', body: JSON.stringify({tipo, motivo:$('#mv-motivo').value, valor})});
+      closeModal(); renderCaixaUI(); toast(tipo+' registrada.');
+    }catch(e){ toast(e.message, true); }
+  });
+}
+$('#btn-sangria').addEventListener('click', ()=>openMovModal('Sangria'));
+$('#btn-suprimento').addEventListener('click', ()=>openMovModal('Suprimento'));
+
+$('#caixa-contado').addEventListener('input', ()=>{
+  if(!caixaAtual) return;
+  const contado = parseFloat($('#caixa-contado').value)||0;
+  const dif = contado - caixaAtual.esperado;
+  $('#caixa-diferenca-wrap').style.display='flex';
+  $('#caixa-diferenca-label').textContent = dif===0?'Confere ✓':(dif>0?'Sobra':'Falta');
+  $('#caixa-diferenca').textContent = fmt(Math.abs(dif));
+  $('#caixa-diferenca').style.color = dif===0?'var(--ok)':(dif>0?'var(--warn)':'var(--danger)');
+});
+
+$('#caixa-fechar').addEventListener('click', ()=>{
+  if(!caixaAtual){ toast('Abra o caixa primeiro.', true); return; }
+  const valorContado = parseFloat($('#caixa-contado').value)||0;
+  const dif = valorContado - caixaAtual.esperado;
+  const difTexto = dif===0 ? 'A gaveta confere certinho.' : (dif>0 ? `Sobra de ${fmt(dif)} na gaveta.` : `Falta ${fmt(Math.abs(dif))} na gaveta.`);
+  confirmAction(
+    'Fechar Caixa?',
+    `Esperado: ${fmt(caixaAtual.esperado)} · Contado: ${fmt(valorContado)}. ${difTexto} Depois de fechado, o relatório será gerado para impressão. Você pode reabrir depois se precisar.`,
+    async ()=>{
+      try{
+        const rows = await api('/pedidos?limite=500');
+        const fechamento = await api('/caixa/fechar', {method:'POST', body: JSON.stringify({valorContado})});
+        generatePrintReport(fechamento, rows);
+        toast('Caixa fechado. Abrindo impressão do relatório...');
+        caixaAtual = null;
+        setTimeout(()=>{ window.print(); renderCaixaUI(); $('#caixa-operador').value=''; $('#caixa-fundo').value=''; $('#caixa-contado').value=''; $('#caixa-diferenca-wrap').style.display='none'; }, 300);
+      }catch(e){ toast(e.message, true); }
+    }
+  );
+});
+
+function generatePrintReport(fechamento, allOrders){
+  const ativos = allOrders.filter(o=>o.status!=='Cancelado' && o.sessao_id===fechamento.id);
+  const totalFat = ativos.reduce((s,o)=>s+o.total,0);
+  const byPay = {Dinheiro:0,Pix:0,'Crédito':0,'Débito':0};
+  ativos.forEach(o=>(o.pagamentos&&o.pagamentos.length ? o.pagamentos : [{forma:o.pagamento,valor:o.total}]).forEach(pg=>{
+    byPay[pg.forma] = (byPay[pg.forma]||0) + pg.valor;
+  }));
+  const saborCount = {};
+  ativos.forEach(o=>o.itens.forEach(it=>{
+    const cat = CATEGORIAS_MAPA[it.categoria];
+    if(cat && cat.tipo==='pizza'){
+      saborCount[it.produto] = (saborCount[it.produto]||0) + it.quantidade*cat.fracao;
+    }
+  }));
+  const topSabores = Object.entries(saborCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  $('#print-report').innerHTML = `
+    <div style="font-family:Arial,sans-serif;max-width:750px;margin:0 auto;">
+      <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:14px;">
+        <h1 style="margin:0;font-size:22px;">Pizzaria — Relatório Diário de Fechamento</h1>
+        <p style="margin:4px 0 0;font-size:12px;">${new Date().toLocaleDateString('pt-BR')} · Operador: ${fechamento.operador}</p>
+      </div>
+      <h3>Resumo Executivo</h3>
+      <p style="font-size:13px;">Faturamento: <b>${fmt(totalFat)}</b> · Pedidos ativos: <b>${ativos.length}</b></p>
+      <h3>Por Forma de Pagamento</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="background:#eee;"><th style="text-align:left;padding:4px;border:1px solid #ccc;">Forma</th><th style="text-align:right;padding:4px;border:1px solid #ccc;">Valor</th><th style="text-align:right;padding:4px;border:1px solid #ccc;">%</th></tr>
+        ${Object.entries(byPay).map(([k,v])=>`<tr><td style="padding:4px;border:1px solid #ccc;">${k}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${fmt(v)}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${totalFat?((v/totalFat)*100).toFixed(1):'0.0'}%</td></tr>`).join('')}
+      </table>
+      <h3>Conferência de Caixa</h3>
+      <p style="font-size:13px;">Fundo Inicial: ${fmt(fechamento.fundo_inicial)} · Vendas Dinheiro: ${fmt(fechamento.vendasDinheiro)} · Suprimentos: ${fmt(fechamento.suprimentos)} · Sangrias: ${fmt(fechamento.sangrias)}<br>
+      Dinheiro Esperado: <b>${fmt(fechamento.esperado)}</b> · Contado: <b>${fmt(fechamento.valorContado)}</b> · ${fechamento.diferenca===0?'Confere':(fechamento.diferenca>0?'Sobra':'Falta')+' '+fmt(Math.abs(fechamento.diferenca))}</p>
+      <h3>Sabores Mais Vendidos</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        ${topSabores.map(([s,q])=>`<tr><td style="padding:4px;border:1px solid #ccc;">${s}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${q}</td></tr>`).join('') || '<tr><td style="padding:4px;">Sem vendas de pizza registradas.</td></tr>'}
+      </table>
+      <div style="display:flex;justify-content:space-between;margin-top:60px;font-size:12px;">
+        <div style="width:45%;border-top:1px solid #000;text-align:center;padding-top:4px;">Operador de Caixa</div>
+        <div style="width:45%;border-top:1px solid #000;text-align:center;padding-top:4px;">Gerente</div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   HISTÓRICO DE CAIXA (aba Caixa) — filtro por dia + reimpressão
+============================================================ */
+async function loadHistCaixa(){
+  try{
+    const data = $('#hist-caixa-data').value;
+    const rows = await api('/caixa/historico' + (data ? '?data='+data : ''));
+    renderHistCaixaLista(rows, '#hist-caixa-lista');
+  }catch(e){ toast(e.message, true); }
+}
+function renderHistCaixaLista(rows, selector){
+  const wrap = $(selector);
+  const podeReabrir = !caixaAtual;
+  wrap.innerHTML = rows.length ? rows.map(s=>{
+    const dt = new Date(s.fechado_em+'Z');
+    const dataFmt = dt.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'});
+    const horaFmt = dt.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    return `
+    <div class="receipt-ticket">
+      <div class="top">
+        <span class="comanda" style="font-size:16px;">${dataFmt}</span>
+        <span class="meta">fechado às ${horaFmt} · ${s.operador}</span>
+      </div>
+      <div class="meta">Fundo: ${fmt(s.fundo_inicial)} · Vendas Dinheiro: ${fmt(s.vendasDinheiro)} · Esperado: ${fmt(s.esperado)} · Contado: ${fmt(s.valor_contado)}</div>
+      <div class="meta">Faturamento: <b style="color:var(--cream)">${fmt(s.faturamento)}</b> · Pedidos: <b style="color:var(--cream)">${s.totalPedidos}</b> · Pizzas Vendidas: <b style="color:var(--cream)">${s.qtdPizzas}</b></div>
+      <div class="top" style="margin-top:6px;">
+        <span class="badge ${s.valor_contado===s.esperado?'ativo':'cancelado'}">${s.valor_contado===s.esperado?'Confere':(s.valor_contado>s.esperado?'Sobra':'Falta')+' '+fmt(Math.abs(s.valor_contado-s.esperado))}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-ghost" data-reimprimir="${s.id}">Ver / Reimprimir</button>
+          <button class="btn btn-sm btn-olive" data-reabrir="${s.id}" ${podeReabrir?'':'disabled title="Feche o caixa aberto primeiro"'}>Reabrir</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">Nenhum fechamento encontrado.</div>';
+}
+$('#hist-caixa-data').addEventListener('change', loadHistCaixa);
+$('#hist-caixa-limpar').addEventListener('click', ()=>{ $('#hist-caixa-data').value=''; loadHistCaixa(); });
+document.addEventListener('click', async e=>{
+  if(e.target.dataset.reimprimir){
+    try{
+      const sessao = await api('/caixa/'+e.target.dataset.reimprimir+'/relatorio');
+      const fechamento = { ...sessao, valorContado: sessao.valor_contado, diferenca: sessao.valor_contado - sessao.esperado };
+      generatePrintReport(fechamento, sessao.pedidos);
+      toast('Abrindo impressão...');
+      setTimeout(()=>window.print(), 300);
+    }catch(err){ toast(err.message, true); }
+  }
+  if(e.target.dataset.reabrir && !e.target.disabled){
+    try{
+      caixaAtual = await api('/caixa/'+e.target.dataset.reabrir+'/reabrir', {method:'POST'});
+      toast('Caixa reaberto.');
+      renderCaixaUI(); loadHistCaixa(); loadHistCaixaRelatorios();
+    }catch(err){ toast(err.message, true); }
+  }
+});
+
+/* ============================================================
+   EQUIPE (freelancers e funcionários fixos)
+============================================================ */
+wireChipGroup('#eq-tipo', ()=>{});
+$('#eq-salvar').addEventListener('click', async ()=>{
+  const nome = $('#eq-nome').value.trim();
+  if(!nome){ toast('Informe o nome.', true); return; }
+  try{
+    await api('/equipe', {method:'POST', body: JSON.stringify({
+      nome, tipo: activeChip('#eq-tipo'), funcao: $('#eq-funcao').value,
+      valorPadrao: parseFloat($('#eq-valor').value)||0, chavePix: $('#eq-pix').value
+    })});
+    ['eq-nome','eq-valor','eq-pix'].forEach(id=>$('#'+id).value='');
+    toast('Pessoa cadastrada.'); loadEquipe();
+  }catch(e){ toast(e.message, true); }
+});
+
+async function loadEquipe(){
+  try{
+    const rows = await api('/equipe?ativos=1');
+    $('#eq-lista').innerHTML = rows.length ? rows.map(p=>`
+      <div class="receipt-ticket">
+        <div class="top"><span style="font-weight:700;font-size:13px;">${p.nome}</span><span class="badge canal">${p.tipo}</span></div>
+        <div class="meta">${p.funcao||'—'} ${p.valor_padrao ? '· padrão '+fmt(p.valor_padrao) : ''} ${p.chave_pix ? '· PIX: '+p.chave_pix : ''}</div>
+        <div class="top" style="margin-top:6px;"><button class="btn btn-sm btn-danger" data-desativar="${p.id}">Desativar</button></div>
+      </div>`).join('') : '<div class="empty">Nenhuma pessoa cadastrada ainda.</div>';
+
+    const select = $('#pg-pessoa');
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">Selecione...</option>' + rows.map(p=>`<option value="${p.id}" data-valor="${p.valor_padrao}">${p.nome} (${p.funcao||p.tipo})</option>`).join('');
+    if(currentVal) select.value = currentVal;
+  }catch(e){ toast(e.message, true); }
+}
+$('#eq-lista').addEventListener('click', async e=>{
+  if(e.target.dataset.desativar){
+    try{ await api('/equipe/'+e.target.dataset.desativar+'/desativar', {method:'POST'}); toast('Pessoa desativada.'); loadEquipe(); }
+    catch(err){ toast(err.message, true); }
+  }
+});
+$('#pg-pessoa').addEventListener('change', e=>{
+  const opt = e.target.selectedOptions[0];
+  const valor = opt ? parseFloat(opt.dataset.valor)||0 : 0;
+  if(valor) $('#pg-valor').value = valor;
+});
+
+$('#pg-salvar').addEventListener('click', async ()=>{
+  const pessoaId = $('#pg-pessoa').value;
+  const valor = parseFloat($('#pg-valor').value)||0;
+  if(!pessoaId || valor<=0){ toast('Selecione a pessoa e informe o valor.', true); return; }
+  try{
+    await api('/equipe/'+pessoaId+'/pagamentos', {method:'POST', body: JSON.stringify({
+      data: $('#pg-data').value || new Date().toISOString().slice(0,10),
+      descricao: $('#pg-descricao').value, valor, taxasExtras: parseFloat($('#pg-taxas').value)||0,
+      formaPagamento: $('#pg-forma').value
+    })});
+    ['pg-descricao','pg-valor','pg-taxas'].forEach(id=>$('#'+id).value=''); $('#pg-taxas').value='0';
+    toast('Pagamento registrado.'); loadPagamentosEquipe();
+  }catch(e){ toast(e.message, true); }
+});
+
+async function loadPagamentosEquipe(){
+  try{
+    const hoje = new Date();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+    const rows = await api(`/equipe/pagamentos/periodo?inicio=${inicioMes}&fim=${hoje.toISOString().slice(0,10)}`);
+    $('#pg-lista').innerHTML = rows.length ? `<table><thead><tr><th>Data</th><th>Pessoa</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td class="tnum">${new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR')}</td><td>${r.nome}</td><td>${r.descricao||'—'}</td><td class="tnum">${fmt(r.valor+r.taxas_extras)}</td></tr>`).join('')
+    }</tbody></table>` : '<div class="empty">Nenhum pagamento este mês ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+
+/* ============================================================
+   RELATÓRIOS — relatório gerencial completo (período livre) +
+   histórico de fechamentos de caixa para reimpressão
+============================================================ */
+function toISODateInput(d){ return d.toISOString().slice(0,10); }
+$$('[data-rel-atalho]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    $$('[data-rel-atalho]').forEach(c=>c.classList.remove('on'));
+    chip.classList.add('on');
+    const now = new Date();
+    let start = new Date(now), end = new Date(now);
+    const v = chip.dataset.relAtalho;
+    if(v==='ontem'){ start.setDate(start.getDate()-1); end.setDate(end.getDate()-1); }
+    if(v==='semana'){ start.setDate(start.getDate()-start.getDay()); }
+    if(v==='mes'){ start.setDate(1); }
+    $('#rel-inicio').value = toISODateInput(start);
+    $('#rel-fim').value = toISODateInput(end);
+  });
+});
+
+$('#rel-gerar').addEventListener('click', async ()=>{
+  const inicio = $('#rel-inicio').value;
+  const fim = $('#rel-fim').value;
+  if(!inicio || !fim){ toast('Escolha o período (De / Até).', true); return; }
+  try{
+    const rel = await api(`/relatorio?inicio=${inicio}T00:00:00&fim=${fim}T23:59:59`);
+    generateManagementReport(rel);
+    toast('Abrindo impressão do relatório...');
+    setTimeout(()=>window.print(), 300);
+  }catch(e){ toast(e.message, true); }
+});
+
+function generateManagementReport(r){
+  $('#print-report').innerHTML = `
+    <div style="font-family:Arial,sans-serif;max-width:750px;margin:0 auto;">
+      <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:14px;">
+        <h1 style="margin:0;font-size:22px;">Pizzaria — Relatório Gerencial</h1>
+        <p style="margin:4px 0 0;font-size:12px;">Período: ${new Date(r.periodo.inicio).toLocaleDateString('pt-BR')} a ${new Date(r.periodo.fim).toLocaleDateString('pt-BR')}</p>
+      </div>
+      <h3>Resumo Executivo</h3>
+      <p style="font-size:13px;">
+        Faturamento: <b>${fmt(r.faturamento)}</b> · Pedidos: <b>${r.totalPedidos}</b> · Ticket Médio: <b>${fmt(r.ticketMedio)}</b><br>
+        Despesas (Compras + Contas + Equipe): <b>${fmt(r.totalDespesas)}</b> · Lucro Estimado: <b>${fmt(r.lucroEstimado)}</b>
+      </p>
+      <h3>Por Forma de Pagamento</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="background:#eee;"><th style="text-align:left;padding:4px;border:1px solid #ccc;">Forma</th><th style="text-align:right;padding:4px;border:1px solid #ccc;">Valor</th></tr>
+        ${Object.entries(r.porPagamento).map(([k,v])=>`<tr><td style="padding:4px;border:1px solid #ccc;">${k}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${fmt(v)}</td></tr>`).join('')}
+      </table>
+      <h3>Despesas Detalhadas</h3>
+      <p style="font-size:13px;">Compras de Insumos: ${fmt(r.despesasCompras)} · Contas Pagas: ${fmt(r.despesasContas)} · Pagamentos à Equipe: ${fmt(r.despesasEquipe)}</p>
+      <p style="font-size:13px;">Contas a Pagar Pendentes: <b>${fmt(r.contasPagarPendentes)}</b> · Contas a Receber Pendentes: <b>${fmt(r.contasReceberPendentes)}</b></p>
+      <h3>Sabores Mais Vendidos</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        ${r.ranking.map(x=>`<tr><td style="padding:4px;border:1px solid #ccc;">${x.sabor}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${x.qtd}</td></tr>`).join('') || '<tr><td style="padding:4px;">Sem vendas de pizza.</td></tr>'}
+      </table>
+      <h3>Bebidas Mais Vendidas</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        ${r.rankingBebidas.map(x=>`<tr><td style="padding:4px;border:1px solid #ccc;">${x.produto}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${x.qtd}</td></tr>`).join('') || '<tr><td style="padding:4px;">Sem vendas de bebida.</td></tr>'}
+      </table>
+      ${r.estoqueBaixo.length ? `<h3>Alerta de Estoque Baixo</h3><p style="font-size:13px;">${r.estoqueBaixo.map(e=>`${e.insumo} (${e.estoque_atual}${e.unidade})`).join(', ')}</p>` : ''}
+      <h3>Repasses à Equipe no Período</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="background:#eee;"><th style="text-align:left;padding:4px;border:1px solid #ccc;">Pessoa</th><th style="text-align:left;padding:4px;border:1px solid #ccc;">Descrição</th><th style="text-align:right;padding:4px;border:1px solid #ccc;">Valor</th></tr>
+        ${r.pagamentosEquipe.map(p=>`<tr><td style="padding:4px;border:1px solid #ccc;">${p.nome}</td><td style="padding:4px;border:1px solid #ccc;">${p.descricao||'—'}</td><td style="text-align:right;padding:4px;border:1px solid #ccc;">${fmt(p.valor+p.taxas_extras)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:4px;">Nenhum pagamento no período.</td></tr>'}
+      </table>
+      <div style="display:flex;justify-content:space-between;margin-top:60px;font-size:12px;">
+        <div style="width:45%;border-top:1px solid #000;text-align:center;padding-top:4px;">Responsável</div>
+        <div style="width:45%;border-top:1px solid #000;text-align:center;padding-top:4px;">Gerente</div>
+      </div>
+    </div>`;
+}
+
+async function loadHistCaixaRelatorios(){
+  try{
+    const data = $('#rel-hist-data').value;
+    const rows = await api('/caixa/historico' + (data ? '?data='+data : ''));
+    renderHistCaixaLista(rows, '#rel-hist-lista');
+  }catch(e){ toast(e.message, true); }
+}
+$('#rel-hist-data').addEventListener('change', loadHistCaixaRelatorios);
+$('#rel-hist-limpar').addEventListener('click', ()=>{ $('#rel-hist-data').value=''; loadHistCaixaRelatorios(); });
+
+/* ============================================================
+   REGISTRO RÁPIDO — caixa simples, cadastro manual independente
+   (não puxa vendas do PDV nem mexe no caixa oficial)
+============================================================ */
+let csPagamentos = [{id:1, motivo:'', valor:0}];
+let csPagSeq = 2;
+let csEditandoId = null;
+
+function csAddPagamento(){
+  csPagamentos.push({id: csPagSeq++, motivo:'', valor:0});
+  renderCsPagamentos();
+}
+function renderCsPagamentos(){
+  $('#cs-pagamentos').innerHTML = csPagamentos.map(p=>`
+    <div class="item-line" style="grid-template-columns:1.6fr .8fr 30px;">
+      <input type="text" placeholder="Motivo (ex: compra de gelo)" data-csf="motivo" data-csid="${p.id}" value="${p.motivo}">
+      <input type="number" min="0" step="0.5" placeholder="Valor" data-csf="valor" data-csid="${p.id}" value="${p.valor||''}">
+      <button class="rm" data-csrm="${p.id}">×</button>
+    </div>`).join('');
+  csAtualizarEsperado();
+}
+$('#cs-add-pagamento').addEventListener('click', csAddPagamento);
+$('#cs-pagamentos').addEventListener('input', e=>{
+  const f = e.target.dataset.csf, id = +e.target.dataset.csid;
+  if(!f) return;
+  const p = csPagamentos.find(x=>x.id===id);
+  if(!p) return;
+  p[f] = f==='valor' ? parseFloat(e.target.value)||0 : e.target.value;
+  csAtualizarEsperado();
+});
+$('#cs-pagamentos').addEventListener('click', e=>{
+  if(e.target.dataset.csrm){ csPagamentos = csPagamentos.filter(x=>x.id!=e.target.dataset.csrm); renderCsPagamentos(); }
+});
+['cs-abertura','cs-vendas','cs-fechamento'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', csAtualizarEsperado);
+});
+function csAtualizarEsperado(){
+  const abertura = parseFloat($('#cs-abertura').value)||0;
+  const vendas = parseFloat($('#cs-vendas').value)||0;
+  const somaPag = csPagamentos.reduce((s,p)=>s+(p.valor||0),0);
+  const esperado = abertura + vendas - somaPag;
+  $('#cs-esperado').textContent = fmt(esperado);
+  const fechamento = parseFloat($('#cs-fechamento').value);
+  const diffEl = $('#cs-diferenca');
+  if(isNaN(fechamento)){ diffEl.textContent=''; return; }
+  const dif = fechamento - esperado;
+  if(Math.abs(dif)<0.01){ diffEl.innerHTML = '<span style="color:var(--ok);">✓ Fechamento confere com o esperado.</span>'; }
+  else if(dif>0){ diffEl.innerHTML = `<span style="color:var(--warn);">Sobra de ${fmt(dif)} em relação ao esperado.</span>`; }
+  else{ diffEl.innerHTML = `<span style="color:var(--danger);">Falta ${fmt(Math.abs(dif))} em relação ao esperado.</span>`; }
+}
+renderCsPagamentos();
+if(!$('#cs-data').value) $('#cs-data').value = new Date().toISOString().slice(0,10);
+
+function csLimparFormulario(){
+  csEditandoId = null;
+  $('#cs-salvar').textContent = 'Salvar Registro';
+  $('#cs-data').value = new Date().toISOString().slice(0,10);
+  $('#cs-abertura').value=''; $('#cs-vendas').value=''; $('#cs-fechamento').value=''; $('#cs-obs').value='';
+  csPagamentos = [{id: csPagSeq++, motivo:'', valor:0}];
+  renderCsPagamentos();
+}
+
+$('#cs-salvar').addEventListener('click', async ()=>{
+  if(!$('#cs-data').value){ toast('Escolha a data.', true); return; }
+  const payload = {
+    data: $('#cs-data').value,
+    abertura: parseFloat($('#cs-abertura').value)||0,
+    vendasDinheiro: parseFloat($('#cs-vendas').value)||0,
+    fechamento: parseFloat($('#cs-fechamento').value)||0,
+    observacao: $('#cs-obs').value,
+    pagamentos: csPagamentos.filter(p=>p.motivo || p.valor).map(p=>({motivo:p.motivo, valor:p.valor}))
+  };
+  try{
+    if(csEditandoId){
+      await api('/caixa-simples/'+csEditandoId, {method:'PUT', body: JSON.stringify(payload)});
+      toast('Registro atualizado.');
+    } else {
+      await api('/caixa-simples', {method:'POST', body: JSON.stringify(payload)});
+      toast('Registro salvo.');
+    }
+    csLimparFormulario();
+    loadCaixaSimples();
+  }catch(e){ toast(e.message, true); }
+});
+
+async function loadCaixaSimples(){
+  try{
+    const data = $('#cs-filtro-data').value;
+    const rows = await api('/caixa-simples' + (data ? '?data='+data : ''));
+    const wrap = $('#cs-lista');
+    wrap.innerHTML = rows.length ? rows.map(r=>{
+      const dataFmt = new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR');
+      return `
+      <div class="receipt-ticket">
+        <div class="top">
+          <span class="comanda" style="font-size:16px;">${dataFmt}</span>
+          <span class="badge ${Math.abs(r.diferenca)<0.01?'ativo':'cancelado'}">${Math.abs(r.diferenca)<0.01?'Confere':(r.diferenca>0?'Sobra ':'Falta ')+fmt(Math.abs(r.diferenca))}</span>
+        </div>
+        <div class="meta">Abertura: ${fmt(r.abertura)} · Vendas Dinheiro: ${fmt(r.vendas_dinheiro)} · Pagamentos: ${fmt(r.somaPagamentos)} · Esperado: ${fmt(r.esperado)} · Fechamento: ${fmt(r.fechamento)}</div>
+        ${r.pagamentos.length ? `<div class="meta">${r.pagamentos.map(p=>`${p.motivo||'—'}: ${fmt(p.valor)}`).join(' · ')}</div>` : ''}
+        ${r.observacao ? `<div class="meta">Obs: ${r.observacao}</div>` : ''}
+        <div class="top" style="margin-top:6px;">
+          <button class="btn btn-sm btn-ghost" data-cs-editar="${r.id}">Editar</button>
+          <button class="btn btn-sm btn-danger" data-cs-excluir="${r.id}">Excluir</button>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty">Nenhum registro ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+$('#cs-filtro-data').addEventListener('change', loadCaixaSimples);
+$('#cs-filtro-limpar').addEventListener('click', ()=>{ $('#cs-filtro-data').value=''; loadCaixaSimples(); });
+$('#cs-lista').addEventListener('click', async e=>{
+  if(e.target.dataset.csExcluir){
+    confirmAction('Excluir Registro?', 'Esse registro de acompanhamento será removido. Essa ação não pode ser desfeita.', async ()=>{
+      try{ await api('/caixa-simples/'+e.target.dataset.csExcluir, {method:'DELETE'}); toast('Registro excluído.'); loadCaixaSimples(); }
+      catch(err){ toast(err.message, true); }
+    });
+  }
+  if(e.target.dataset.csEditar){
+    try{
+      const rows = await api('/caixa-simples');
+      const r = rows.find(x=>String(x.id)===e.target.dataset.csEditar);
+      if(!r) return;
+      csEditandoId = r.id;
+      $('#cs-salvar').textContent = 'Salvar Alterações';
+      $('#cs-data').value = r.data;
+      $('#cs-abertura').value = r.abertura;
+      $('#cs-vendas').value = r.vendas_dinheiro;
+      $('#cs-fechamento').value = r.fechamento;
+      $('#cs-obs').value = r.observacao || '';
+      csPagamentos = r.pagamentos.length ? r.pagamentos.map(p=>({id: csPagSeq++, motivo:p.motivo, valor:p.valor})) : [{id: csPagSeq++, motivo:'', valor:0}];
+      renderCsPagamentos();
+      toast('Editando registro — role para cima.');
+    }catch(err){ toast(err.message, true); }
+  }
+});
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+wireChipGroup('#dash-period', v=>{
+  $('#dash-dia-wrap').style.display = (v==='dia-especifico') ? 'grid' : 'none';
+  $('#dash-mes-wrap').style.display = (v==='mes-especifico') ? 'grid' : 'none';
+  if(v!=='dia-especifico' && v!=='mes-especifico') renderDashboard();
+});
+$('#dash-dia-input').addEventListener('change', renderDashboard);
+$('#dash-mes-input').addEventListener('change', renderDashboard);
+
+function periodRange(){
+  const v = activeChip('#dash-period') || 'hoje';
+  const now = new Date();
+  const start = new Date(now); start.setHours(0,0,0,0);
+  const end = new Date(now); end.setHours(23,59,59,999);
+  if(v==='ontem'){ start.setDate(start.getDate()-1); end.setDate(end.getDate()-1); }
+  if(v==='semana'){ start.setDate(start.getDate()-start.getDay()); }
+  if(v==='mes'){ start.setDate(1); }
+  if(v==='tudo'){ start.setFullYear(2000); end.setFullYear(2100); }
+  if(v==='dia-especifico' && $('#dash-dia-input').value){
+    const [y,m,d] = $('#dash-dia-input').value.split('-').map(Number);
+    start.setFullYear(y,m-1,d); start.setHours(0,0,0,0);
+    end.setFullYear(y,m-1,d); end.setHours(23,59,59,999);
+  }
+  if(v==='mes-especifico' && $('#dash-mes-input').value){
+    const [y,m] = $('#dash-mes-input').value.split('-').map(Number);
+    start.setFullYear(y,m-1,1); start.setHours(0,0,0,0);
+    end.setFullYear(y,m,0); end.setHours(23,59,59,999); // dia 0 do mês seguinte = último dia do mês
+  }
+  return {start: start.toISOString(), end: end.toISOString()};
+}
+async function renderDashboard(){
+  const {start,end} = periodRange();
+  try{
+    const d = await api(`/dashboard?inicio=${encodeURIComponent(start)}&fim=${encodeURIComponent(end)}`);
+    const totalPizzas = d.totalPizzasVendidas ?? d.ranking.reduce((s,r)=>s+r.qtd, 0);
+    const cards = [
+      ['Faturamento Bruto', fmt(d.faturamento), ''],
+      ['Total de Pedidos', d.totalPedidos, ''],
+      ['Pizzas Vendidas', totalPizzas, ''],
+      ['Ticket Médio', fmt(d.ticketMedio), ''],
+      ['Saldo em Gaveta', fmt(d.saldoGaveta), ''],
+      ['Estoque Baixo', d.estoqueBaixo.length + ' item(s)', d.estoqueBaixo.length>0?'neg':'pos'],
+      ['A Pagar / A Receber', fmt(d.contasPagarPendentes)+' / '+fmt(d.contasReceberPendentes), ''],
+    ];
+    $('#dash-metrics').innerHTML = cards.map(([l,v,cls])=>`<div class="metric"><div class="lbl">${l}</div><div class="val tnum ${cls}">${v}</div></div>`).join('');
+
+    const maxQ = d.ranking.length ? d.ranking[0].qtd : 1;
+    $('#dash-ranking').innerHTML = d.ranking.length ? d.ranking.map((r,i)=>`
+      <div class="rank-row"><span class="n">${i+1}</span><span style="width:150px;font-size:12.5px;">${r.sabor}</span>
+      <span class="bar"><i style="width:${(r.qtd/maxQ)*100}%"></i></span><span class="qty tnum">${r.qtd}</span></div>
+    `).join('') : '<div class="empty">Sem vendas de pizza no período.</div>';
+    $('#dash-ranking-sub').textContent = 'Inteiras contam 1, meias contam 0,5, terços contam 0,33'
+      + (d.ranking.length>=10 ? ' · mostrando os 10 mais vendidos (o card "Pizzas Vendidas" soma todos os sabores)' : '');
+
+    const maxB = d.rankingBebidas.length ? d.rankingBebidas[0].qtd : 1;
+    $('#dash-ranking-bebidas').innerHTML = d.rankingBebidas.length ? d.rankingBebidas.map((r,i)=>`
+      <div class="rank-row"><span class="n">${i+1}</span><span style="width:150px;font-size:12.5px;">${r.produto}</span>
+      <span class="bar"><i style="width:${(r.qtd/maxB)*100}%;background:linear-gradient(90deg,var(--olive-dark),var(--olive))"></i></span><span class="qty tnum">${r.qtd}</span></div>
+    `).join('') : '<div class="empty">Sem vendas de bebida no período.</div>';
+
+    $('#dash-pagamentos').innerHTML = Object.entries(d.porPagamento).map(([k,v])=>{
+      const pct = d.faturamento ? (v/d.faturamento)*100 : 0;
+      return `<div class="rank-row"><span style="width:70px;font-size:12.5px;">${k}</span>
+      <span class="bar"><i style="width:${pct}%;background:linear-gradient(90deg,var(--olive-dark),var(--olive))"></i></span>
+      <span class="qty tnum">${fmt(v)}</span></div>`;
+    }).join('');
+  }catch(e){ toast(e.message, true); }
+}
+
+/* ============================================================
+   ESTOQUE & COMPRAS
+============================================================ */
+async function loadEstoque(){
+  try{
+    const rows = await api('/estoque');
+    const wrap = $('#est-lista');
+    wrap.innerHTML = rows.length ? `<table><thead><tr><th>Insumo</th><th>Un.</th><th>Atual</th><th>Mínimo</th><th>Custo médio</th></tr></thead><tbody>${
+      rows.map(r=>`<tr class="${r.alerta?'cancelado':''}" style="${r.alerta?'opacity:1;text-decoration:none;':''}">
+        <td>${r.insumo}${r.alerta?' <span class="badge cancelado">baixo</span>':''}</td>
+        <td>${r.unidade}</td><td class="tnum">${r.estoque_atual}</td><td class="tnum">${r.estoque_minimo}</td>
+        <td class="tnum">${fmt(r.custo_medio)}</td></tr>`).join('')
+    }</tbody></table>` : '<div class="empty">Nenhum insumo cadastrado ainda.</div>';
+
+    const dl = document.getElementById('estoque-list') || document.createElement('datalist');
+    dl.id = 'estoque-list';
+    dl.innerHTML = rows.map(r=>`<option value="${r.insumo}">`).join('');
+    if(!document.getElementById('estoque-list')) document.body.appendChild(dl);
+  }catch(e){ toast(e.message, true); }
+}
+$('#est-salvar').addEventListener('click', async ()=>{
+  const insumo = $('#est-insumo').value.trim();
+  if(!insumo){ toast('Informe o nome do insumo.', true); return; }
+  try{
+    await api('/estoque', {method:'POST', body: JSON.stringify({
+      insumo, unidade: $('#est-unidade').value, estoqueMinimo: parseFloat($('#est-minimo').value)||0, estoqueAtual: 0
+    })});
+    $('#est-insumo').value=''; $('#est-minimo').value='0';
+    toast('Insumo cadastrado.'); loadEstoque();
+  }catch(e){ toast(e.message, true); }
+});
+
+/* ============================================================
+   CATEGORIAS — tipos de item do PDV, cadastráveis (ex: Pizza Inteira,
+   Bebida, Sobremesa, Pizza Quarto...). Usado em toda parte que antes
+   tinha uma lista fixa de categorias. (variáveis CATEGORIAS e
+   CATEGORIAS_MAPA são declaradas no topo do script, antes de tudo)
+============================================================ */
+async function loadCategorias(){
+  try{
+    CATEGORIAS = await api('/categorias');
+    CATEGORIAS_MAPA = {};
+    CATEGORIAS.forEach(c=>{ CATEGORIAS_MAPA[c.nome] = c; });
+
+    // atualiza o select de categoria da tela de Produtos & Preços, se estiver na página
+    const selProd = document.getElementById('prod-categoria');
+    if(selProd){
+      const atual = selProd.value;
+      selProd.innerHTML = CATEGORIAS.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+      if(atual && CATEGORIAS_MAPA[atual]) selProd.value = atual;
+    }
+    const selProdMassa = document.getElementById('prod-massa-categoria');
+    if(selProdMassa){
+      const atual = selProdMassa.value;
+      selProdMassa.innerHTML = CATEGORIAS.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+      if(atual && CATEGORIAS_MAPA[atual]) selProdMassa.value = atual;
+    }
+
+    const wrap = $('#cat-lista');
+    if(wrap){
+      wrap.innerHTML = CATEGORIAS.length ? CATEGORIAS.map(c=>`
+        <div class="receipt-ticket">
+          <div class="top">
+            <span style="font-weight:700;font-size:13px;">${c.nome}</span>
+            <span class="badge ${c.tipo==='pizza'?'ativo':'canal'}">${c.tipo==='pizza'?'Pizza':'Consumo'}</span>
+          </div>
+          <div class="meta">${c.tipo==='pizza' ? 'Fração: '+c.fracao.toFixed(2)+' de uma pizza inteira' : 'Baixa direto do insumo com o mesmo nome no Estoque'}</div>
+          <div class="top" style="margin-top:6px;"><button class="btn btn-sm btn-danger" data-del-categoria="${c.id}">Remover</button></div>
+        </div>`).join('') : '<div class="empty">Nenhuma categoria cadastrada ainda.</div>';
+    }
+  }catch(e){ toast(e.message, true); }
+}
+
+wireChipGroup('#cat-tipo', v=>{ $('#cat-fracao-wrap').style.display = (v==='pizza') ? 'block' : 'none'; });
+
+const catSalvarBtn = document.getElementById('cat-salvar');
+if(catSalvarBtn) catSalvarBtn.addEventListener('click', async ()=>{
+  const nome = $('#cat-nome').value.trim();
+  if(!nome){ toast('Informe o nome da categoria.', true); return; }
+  const tipo = activeChip('#cat-tipo');
+  const fracao = tipo==='pizza' ? (parseFloat($('#cat-fracao').value)||1) : 1;
+  try{
+    await api('/categorias', {method:'POST', body: JSON.stringify({nome, tipo, fracao})});
+    $('#cat-nome').value=''; $('#cat-fracao').value='1';
+    toast('Categoria salva.');
+    loadCategorias();
+  }catch(e){ toast(e.message, true); }
+});
+document.addEventListener('click', async e=>{
+  if(e.target.dataset.delCategoria){
+    try{ await api('/categorias/'+e.target.dataset.delCategoria, {method:'DELETE'}); toast('Categoria removida.'); loadCategorias(); }
+    catch(err){ toast(err.message, true); }
+  }
+});
+
+async function loadCompras(){
+  try{
+    const rows = await api('/compras?limite=20');
+    const wrap = $('#cmp-lista');
+    wrap.innerHTML = rows.length ? `<table><thead><tr><th>Data</th><th>Insumo</th><th>Qtd</th><th>Valor</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td class="tnum">${new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR')}</td><td>${r.insumo}</td><td class="tnum">${r.quantidade} ${r.unidade}</td><td class="tnum">${fmt(r.valor_total)}</td></tr>`).join('')
+    }</tbody></table>` : '<div class="empty">Nenhuma compra lançada ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+
+/* ============================================================
+   PRODUTOS & PREÇOS — catálogo de preços por (nome, categoria),
+   usado para auto-preencher o valor unitário no PDV.
+============================================================ */
+let PRECOS_MAPA = {}; // chave: "categoria|nome" -> preco
+
+function chavePreco(categoria, nome){ return categoria+'|'+(nome||'').trim().toLowerCase(); }
+
+async function loadProdutos(){
+  try{
+    const rows = await api('/produtos');
+    PRECOS_MAPA = {};
+    rows.forEach(p=>{ PRECOS_MAPA[chavePreco(p.categoria, p.nome)] = p.preco; });
+    const wrap = $('#prod-lista');
+    if(!wrap) return;
+    wrap.innerHTML = rows.length ? `<table><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th></th></tr></thead><tbody>${
+      rows.map(p=>`<tr><td>${p.nome}</td><td><span class="badge canal">${p.categoria}</span></td><td class="tnum">${fmt(p.preco)}</td>
+        <td><button class="btn btn-sm btn-danger" data-del-produto="${p.id}">Remover</button></td></tr>`).join('')
+    }</tbody></table>` : '<div class="empty">Nenhum preço cadastrado ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+const prodSalvarBtn = document.getElementById('prod-salvar');
+if(prodSalvarBtn) prodSalvarBtn.addEventListener('click', async ()=>{
+  const nome = $('#prod-nome').value.trim();
+  const categoria = $('#prod-categoria').value;
+  const preco = parseFloat($('#prod-preco').value)||0;
+  if(!nome || preco<=0){ toast('Informe o nome e um preço válido.', true); return; }
+  try{
+    await api('/produtos', {method:'POST', body: JSON.stringify({nome, categoria, preco})});
+    $('#prod-nome').value=''; $('#prod-preco').value='';
+    toast('Preço salvo.'); loadProdutos();
+  }catch(e){ toast(e.message, true); }
+});
+document.addEventListener('click', async e=>{
+  if(e.target.dataset.delProduto){
+    try{ await api('/produtos/'+e.target.dataset.delProduto, {method:'DELETE'}); toast('Preço removido.'); loadProdutos(); }
+    catch(err){ toast(err.message, true); }
+  }
+});
+
+const prodMassaBtn = document.getElementById('prod-massa-salvar');
+if(prodMassaBtn) prodMassaBtn.addEventListener('click', async ()=>{
+  const categoria = $('#prod-massa-categoria').value;
+  const texto = $('#prod-massa-texto').value;
+  const linhas = texto.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  if(linhas.length===0){ toast('Cole ao menos um item, um por linha.', true); return; }
+
+  const resultadoEl = $('#prod-massa-resultado');
+  resultadoEl.textContent = `Cadastrando ${linhas.length} item(ns)...`;
+
+  let sucesso = 0, falha = 0;
+  const erros = [];
+  for(const linha of linhas){
+    const [nomeParte, precoParte] = linha.split(';').map(p=>p?.trim());
+    const nome = nomeParte;
+    const preco = parseFloat((precoParte||'').replace(',','.')) || 0;
+    if(!nome) continue;
+    try{
+      await api('/produtos', {method:'POST', body: JSON.stringify({nome, categoria, preco})});
+      sucesso++;
+    }catch(err){
+      falha++;
+      erros.push(`${nome}: ${err.message}`);
+    }
+  }
+  resultadoEl.innerHTML = falha===0
+    ? `<span style="color:var(--ok);">✓ ${sucesso} item(ns) cadastrado(s) com sucesso.</span>`
+    : `<span style="color:var(--warn);">${sucesso} cadastrado(s), ${falha} com erro: ${erros.join('; ')}</span>`;
+  if(sucesso>0){ $('#prod-massa-texto').value=''; toast(`${sucesso} item(ns) cadastrado(s).`); }
+  loadProdutos();
+  loadCatalogo();
+});
+$('#cmp-salvar').addEventListener('click', async ()=>{
+  const insumo = $('#cmp-insumo').value.trim();
+  const quantidade = parseFloat($('#cmp-qtd').value)||0;
+  if(!insumo || quantidade<=0){ toast('Informe insumo e quantidade.', true); return; }
+  try{
+    await api('/compras', {method:'POST', body: JSON.stringify({
+      data: $('#cmp-data').value || new Date().toISOString().slice(0,10),
+      fornecedor: $('#cmp-fornecedor').value, insumo, quantidade,
+      unidade: $('#cmp-unidade').value || 'un', valorUnitario: parseFloat($('#cmp-valor').value)||0,
+      formaPagamento: $('#cmp-pagto').value, nota: $('#cmp-nota').value
+    })});
+    ['cmp-fornecedor','cmp-insumo','cmp-qtd','cmp-unidade','cmp-valor','cmp-nota'].forEach(id=>$('#'+id).value='');
+    toast('Compra registrada — estoque atualizado.');
+    loadCompras(); loadEstoque();
+  }catch(e){ toast(e.message, true); }
+});
+
+/* ============================================================
+   FICHA TÉCNICA
+============================================================ */
+let ficItens = [];
+let ficSeq = 1;
+function addFicItem(){
+  ficItens.push({id: ficSeq++, insumo:'', qtd:0, unidade:'g'});
+  renderFicItens();
+}
+function renderFicItens(){
+  $('#fic-itens').innerHTML = ficItens.map(it=>`
+    <div class="item-line" style="grid-template-columns:1.4fr .7fr .6fr 30px;">
+      <input type="text" placeholder="Insumo" data-f="insumo" data-id="${it.id}" value="${it.insumo}" list="estoque-list">
+      <input type="number" placeholder="Qtd por unidade" data-f="qtd" data-id="${it.id}" value="${it.qtd||''}" min="0" step="0.01">
+      <input type="text" placeholder="g, ml, un..." data-f="unidade" data-id="${it.id}" value="${it.unidade}">
+      <button class="rm" data-rm="${it.id}">×</button>
+    </div>`).join('');
+}
+$('#fic-add-item').addEventListener('click', addFicItem);
+$('#fic-itens').addEventListener('input', e=>{
+  const f=e.target.dataset.f, id=+e.target.dataset.id;
+  if(!f) return;
+  const it = ficItens.find(x=>x.id===id);
+  if(it) it[f] = f==='qtd' ? parseFloat(e.target.value)||0 : e.target.value;
+});
+$('#fic-itens').addEventListener('click', e=>{
+  if(e.target.dataset.rm){ ficItens = ficItens.filter(x=>x.id!=e.target.dataset.rm); renderFicItens(); }
+});
+addFicItem();
+
+$('#fic-salvar').addEventListener('click', async ()=>{
+  const produto = $('#fic-produto').value.trim();
+  const itensValidos = ficItens.filter(it=>it.insumo && it.qtd>0);
+  if(!produto || itensValidos.length===0){ toast('Informe o produto e ao menos um insumo com quantidade.', true); return; }
+  try{
+    await api('/fichas', {method:'POST', body: JSON.stringify({
+      produto, itens: itensValidos.map(it=>({insumo:it.insumo, quantidadePorUnidade:it.qtd, unidade:it.unidade}))
+    })});
+    toast('Ficha técnica salva.');
+    $('#fic-produto').value=''; ficItens=[]; addFicItem();
+    loadFichas();
+    loadCatalogo();
+  }catch(e){ toast(e.message, true); }
+});
+
+async function loadFichas(){
+  try{
+    const grouped = await api('/fichas');
+    const wrap = $('#fic-lista');
+    const produtos = Object.keys(grouped);
+    wrap.innerHTML = produtos.length ? produtos.map(p=>`
+      <div class="receipt-ticket">
+        <div class="top"><span class="comanda" style="font-size:15px;">${p}</span>
+          <button class="btn btn-sm btn-danger" data-del-ficha="${p}">Remover</button></div>
+        <div class="meta">${grouped[p].map(it=>`${it.insumo}: ${it.quantidade_por_unidade}${it.unidade}`).join(' · ')}</div>
+      </div>`).join('') : '<div class="empty">Nenhuma ficha técnica cadastrada ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+$('#fic-lista').addEventListener('click', async e=>{
+  if(e.target.dataset.delFicha){
+    try{ await api('/fichas/'+encodeURIComponent(e.target.dataset.delFicha), {method:'DELETE'}); toast('Ficha removida.'); loadFichas(); }
+    catch(err){ toast(err.message, true); }
+  }
+});
+
+/* ============================================================
+   FINANCEIRO
+============================================================ */
+wireChipGroup('#fin-tipo', ()=>{});
+wireChipGroup('#fin-filtro', loadContas);
+
+$('#fin-salvar').addEventListener('click', async ()=>{
+  const descricao = $('#fin-descricao').value.trim();
+  const valor = parseFloat($('#fin-valor').value)||0;
+  if(!descricao || valor<=0){ toast('Informe descrição e valor.', true); return; }
+  try{
+    await api('/contas', {method:'POST', body: JSON.stringify({
+      tipo: activeChip('#fin-tipo'), descricao, categoria: $('#fin-categoria').value,
+      vencimento: $('#fin-vencimento').value, valor
+    })});
+    ['fin-descricao','fin-categoria','fin-vencimento','fin-valor'].forEach(id=>$('#'+id).value='');
+    toast('Conta lançada.'); loadContas();
+  }catch(e){ toast(e.message, true); }
+});
+
+async function loadContas(){
+  try{
+    const filtro = activeChip('#fin-filtro');
+    const rows = await api('/contas' + (filtro && filtro!=='todas' ? '?tipo='+filtro : ''));
+    const wrap = $('#fin-lista');
+    wrap.innerHTML = rows.length ? rows.map(c=>`
+      <div class="receipt-ticket">
+        <div class="top">
+          <span style="font-size:13px;font-weight:700;">${c.descricao}</span>
+          <span class="badge ${c.tipo==='pagar'?'cancelado':'ativo'}">${c.tipo==='pagar'?'A Pagar':'A Receber'}</span>
+        </div>
+        <div class="meta">${c.categoria||'—'} ${c.vencimento ? '· vence '+new Date(c.vencimento+'T00:00:00').toLocaleDateString('pt-BR') : ''}</div>
+        <div class="top" style="margin-top:6px;">
+          <span class="badge ${c.status==='Pendente'?'editado':'ativo'}">${c.status}</span>
+          <span class="val tnum">${fmt(c.valor)}</span>
+        </div>
+        ${c.status==='Pendente' ? `<div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn btn-sm btn-primary" data-baixar="${c.id}" data-sangria="0">Marcar como ${c.tipo==='pagar'?'Pago':'Recebido'}</button>
+          ${c.tipo==='pagar' ? `<button class="btn btn-sm btn-olive" data-baixar="${c.id}" data-sangria="1">Pagar via Sangria</button>` : ''}
+        </div>` : ''}
+      </div>`).join('') : '<div class="empty">Nenhuma conta lançada ainda.</div>';
+  }catch(e){ toast(e.message, true); }
+}
+$('#fin-lista').addEventListener('click', async e=>{
+  if(e.target.dataset.baixar){
+    try{
+      await api('/contas/'+e.target.dataset.baixar+'/baixar', {method:'POST', body: JSON.stringify({pagoViaSangria: e.target.dataset.sangria==='1'})});
+      toast('Conta baixada.'); loadContas();
+    }catch(err){ toast(err.message, true); }
+  }
+});
+
+/* ============================================================
+   BOOT
+============================================================ */
+async function bootApp(){
+  await loadCategorias(); // precisa carregar antes, várias telas dependem de CATEGORIAS_MAPA
+  renderItemLines(); // re-renderiza a primeira linha do PDV agora com as categorias corretas
+  loadRecentOrders();
+  refreshCaixa();
+  renderDashboard();
+  loadEstoque();
+  loadEquipe();
+  loadCatalogo();
+  loadProdutos();
+}
+if(TOKEN && USER){ showApp(); } else { showLogin(); }
+</script>
+</body>
+</html>

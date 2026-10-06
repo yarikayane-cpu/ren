@@ -1,0 +1,5 @@
+node_modules/
+pizzaria.db
+pizzaria.db-shm
+pizzaria.db-wal
+.env
